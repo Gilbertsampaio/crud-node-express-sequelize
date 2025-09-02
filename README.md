@@ -1,6 +1,6 @@
-# ?? API Users com Node.js, Express e Sequelize
+# 📦 API Users com Node.js, Express e Sequelize
 
-Este projeto � uma **API RESTful** simples para gerenciamento de usu�rios, utilizando:
+Este projeto é uma **API RESTful** simples para gerenciamento de usuários, utilizando:
 
 - **Node.js**
 - **Express**
@@ -10,7 +10,7 @@ Este projeto � uma **API RESTful** simples para gerenciamento de usu�rios, utili
 
 ---
 
-## ?? Tecnologias Utilizadas
+## 🚀 Tecnologias Utilizadas
 - Node.js  
 - Express  
 - Sequelize  
@@ -19,62 +19,62 @@ Este projeto � uma **API RESTful** simples para gerenciamento de usu�rios, utili
 
 ---
 
-## ?? Setup do Projeto
+## ⚙️ Setup do Projeto
 
-### 1?? Clonar o reposit�rio
+### 1️⃣ Clonar o repositório
 ```bash
 git clone <URL_DO_REPOSITORIO>
 cd <NOME_DO_PROJETO>
 ```
 
-### 2?? Instalar depend�ncias
+### 2️⃣ Instalar dependências
 ```bash
 npm install
 ```
 
-### 3?? Configurar o banco de dados MySQL
+### 3️⃣ Configurar o banco de dados MySQL
 Crie o banco de dados:
 ```sql
 CREATE DATABASE usuarios_db DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-Atualize as credenciais no arquivo **`config/database.js`** (`usu�rio`, `senha` e `host`).
+Atualize as credenciais no arquivo **`config/database.js`** (`usuário`, `senha` e `host`).
 
 ---
 
-## ?? Estrutura do Projeto
+## 📁 Estrutura do Projeto
 
 ```
-??? app.js              # Configura��o do servidor Express e rotas principais
-??? config/
-?   ??? database.js     # Conex�o com o banco de dados MySQL
-??? models/
-?   ??? user.js         # Modelo Sequelize da tabela Users
-??? package.json
+├── app.js              # Configuração do servidor Express e rotas principais
+├── config/
+│   └── database.js     # Conexão com o banco de dados MySQL
+├── models/
+│   └── user.js         # Modelo Sequelize da tabela Users
+└── package.json
 ```
 
 ---
 
-## ?? Rotas da API
+## 🔁 Rotas da API
 
-### ? Criar usu�rio
+### ✅ Criar usuário
 **POST** `/api/users`  
 Body JSON:
 ```json
 {
-  "name": "Nome do Usu�rio",
+  "name": "Nome do Usuário",
   "email": "email@exemplo.com"
 }
 ```
 
 ---
 
-### ?? Listar todos os usu�rios
+### 📄 Listar todos os usuários
 **GET** `/api/users`
 
 ---
 
-### ?? Atualizar usu�rio
+### ✏️ Atualizar usuário
 **PUT** `/api/users/:id`  
 Body JSON:
 ```json
@@ -86,16 +86,16 @@ Body JSON:
 
 ---
 
-### ??? Deletar usu�rio
+### 🗑️ Deletar usuário
 **DELETE** `/api/users/:id`
 
 ---
 
-## ?? Como rodar o projeto
+## ▶️ Como rodar o projeto
 
 ```bash
 node app.js
 ```
 
-O servidor ficar� dispon�vel em:  
-?? [http://localhost:3000](http://localhost:3000)
+O servidor ficará disponível em:  
+👉 [http://localhost:3000](http://localhost:3000)
