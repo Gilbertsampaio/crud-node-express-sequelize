@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api/api';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
+import { FaSave, FaTimes } from 'react-icons/fa';
 
 export default function ServicoForm() {
   const [title, setTitle] = useState('');
@@ -113,8 +114,14 @@ export default function ServicoForm() {
         {error && <p style={{ color: 'red' }}>{error}</p>}
 
         <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-          <Button type="submit">{id ? 'Atualizar' : 'Salvar'}</Button>
-          <Button type="button" onClick={handleCancel}>Cancelar</Button>
+          <Button type="submit">
+            <FaSave style={{ marginRight: '5px' }} />
+            {id ? 'Atualizar' : 'Salvar'}
+          </Button>
+          <Button type="button" onClick={handleCancel}>
+            <FaTimes style={{ marginRight: '5px' }} />
+            Cancelar
+          </Button>
         </div>
       </form>
     </div>

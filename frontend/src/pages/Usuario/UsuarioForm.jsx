@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api/api';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
+import { FaSave, FaTimes } from 'react-icons/fa';
 
 export default function UsuarioForm() {
   const [nome, setNome] = useState('');
@@ -80,8 +81,12 @@ export default function UsuarioForm() {
           error={error}
         />
         <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
-          <Button type="submit">{id ? 'Atualizar' : 'Salvar'}</Button>
+          <Button type="submit">
+            <FaSave style={{ marginRight: '5px' }} />
+            {id ? 'Atualizar' : 'Salvar'}
+          </Button>
           <Button type="button" onClick={handleCancel} style={{ backgroundColor: '#ccc', color: '#000' }}>
+            <FaTimes style={{ marginRight: '5px' }} />
             Cancelar
           </Button>
         </div>

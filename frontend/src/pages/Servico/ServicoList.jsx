@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import api from '../../api/api';
 import Table from '../../components/common/Table';
 import Button from '../../components/common/Button';
+import { FaPlus, FaEdit, FaHome } from 'react-icons/fa';
 import './ServicoList.css';
 
 export default function ServicoListPage() {
@@ -43,6 +44,7 @@ export default function ServicoListPage() {
 
   const handleEdit = (id) => navigate(`/servicos/editar/${id}`);
   const handleNew = () => navigate('/servicos/novo');
+  const handleHome = () => navigate('/');
 
   const columns = [
     { key: 'id', label: 'ID' },
@@ -53,7 +55,9 @@ export default function ServicoListPage() {
       key: 'actions',
       label: 'Ações',
       render: (service) => (
-        <Button onClick={() => handleEdit(service.id)}>Editar</Button>
+        <Button onClick={() => handleEdit(service.id)}>
+          <FaEdit style={{ marginRight: '5px' }} /> Editar
+        </Button>
       )
     }
   ];
@@ -68,9 +72,16 @@ export default function ServicoListPage() {
 
   return (
     <div className="container">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
         <h2>Lista de Serviços</h2>
-        <Button onClick={handleNew}>Novo Serviço</Button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <Button onClick={handleHome}>
+            <FaHome style={{ marginRight: '5px' }} /> Home
+          </Button>
+          <Button onClick={handleNew}>
+            <FaPlus style={{ marginRight: '5px' }} /> Novo Serviço
+          </Button>
+        </div>
       </div>
 
       {successMessage && <p className="success">{successMessage}</p>}

@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import api from '../../api/api';
 import Table from '../../components/common/Table';
 import Button from '../../components/common/Button';
+import { FaPlus, FaEdit, FaHome } from 'react-icons/fa';
 import './UsuarioList.css';
 
 export default function UsuarioList() {
@@ -33,6 +34,7 @@ export default function UsuarioList() {
 
   const handleEdit = (id) => navigate(`/usuarios/editar/${id}`);
   const handleNew = () => navigate('/usuarios/novo');
+  const handleHome = () => navigate('/');
 
   const columns = [
     { key: 'id', label: 'ID' },
@@ -42,16 +44,25 @@ export default function UsuarioList() {
       key: 'actions',
       label: 'Ações',
       render: (usuario) => (
-        <Button onClick={() => handleEdit(usuario.id)}>Editar</Button>
+        <Button onClick={() => handleEdit(usuario.id)}>
+          <FaEdit style={{ marginRight: '5px' }} /> Editar
+        </Button>
       )
     }
   ];
 
   return (
     <div className="container">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
         <h2>Lista de Usuários</h2>
-        <Button onClick={handleNew}>Novo Usuário</Button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <Button onClick={handleHome}>
+            <FaHome style={{ marginRight: '5px' }} /> Home
+          </Button>
+          <Button onClick={handleNew}>
+            <FaPlus style={{ marginRight: '5px' }} /> Novo Usuário
+          </Button>
+        </div>
       </div>
 
       {successMessage && <p className="success">{successMessage}</p>}
