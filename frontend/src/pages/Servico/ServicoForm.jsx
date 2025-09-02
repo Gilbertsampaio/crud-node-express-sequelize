@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api/api';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
@@ -11,6 +11,7 @@ export default function ServicoForm() {
   const [usuarios, setUsuarios] = useState([]);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { id } = useParams(); // pega o id do serviço
 
   // Buscar usuários para selecionar
   useEffect(() => {
@@ -18,13 +19,25 @@ export default function ServicoForm() {
       try {
         const res = await api.get('/users');
         setUsuarios(res.data);
-      } catch (err) {
-        console.error(err);
+      } catch {
         setError('Erro ao buscar usuários.');
       }
     }
     fetchUsuarios();
   }, []);
+
+  // Se houver id, carregar os dados do serviço
+  useEffect(() => {
+    if (id) {
+      api.get(`/services/${id}`)
+        .then(res => {
+          setTitle(res.data.title);
+          setDescription(res.data.description);
+          setUserId(res.data.userId);
+        })
+        .catch(() => setError('Erro ao carregar serviço.'));
+    }
+  }, [id]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,21 +47,26 @@ export default function ServicoForm() {
     }
 
     try {
-      await api.post('/services', { title, description, userId });
-      setTitle('');
-      setDescription('');
-      setUserId('');
-      setError('');
-      navigate('/servicos?success=1', { state: { successMessage: 'Serviço criado com sucesso!' } });
+      if (id) {
+        await api.put(`/services/${id}`, { title, description, userId });
+        navigate('/servicos', { state: { successMessage: 'Serviço atualizado com sucesso!' } });
+      } else {
+        await api.post('/services', { title, description, userId });
+        navigate('/servicos', { state: { successMessage: 'Serviço criado com sucesso!' } });
+      }
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.error || 'Erro ao criar serviço.');
+      setError(err.response?.data?.error || 'Erro ao salvar serviço.');
     }
+  };
+
+  const handleCancel = () => {
+    navigate('/servicos');
   };
 
   return (
     <div className="container">
-      <h2>Novo Serviço</h2>
+      <h2>{id ? 'Editar Serviço' : 'Novo Serviço'}</h2>
       <form onSubmit={handleSubmit}>
         <Input
           label="Título"
@@ -94,7 +112,10 @@ export default function ServicoForm() {
 
         {error && <p style={{ color: 'red' }}>{error}</p>}
 
-        <Button type="submit">Salvar</Button>
+        <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+          <Button type="submit">{id ? 'Atualizar' : 'Salvar'}</Button>
+          <Button type="button" onClick={handleCancel}>Cancelar</Button>
+        </div>
       </form>
     </div>
   );

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api/api';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
@@ -9,21 +9,42 @@ export default function UsuarioForm() {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { id } = useParams();
+
+  // Carregar dados do usuário se houver id
+  useEffect(() => {
+    if (id) {
+      api.get(`/users/${id}`)
+        .then(res => {
+          setNome(res.data.name);
+          setEmail(res.data.email);
+        })
+        .catch(error => {
+          console.error(error);
+          if (error.response && error.response.status === 404) {
+            setError('Usuário não encontrado.');
+          } else {
+            setError('Erro ao carregar usuário.');
+          }
+        });
+    }
+  }, [id]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Validação básica
     if (!nome.trim() || !email.trim()) {
       setError('Nome e email são obrigatórios.');
       return;
     }
 
     try {
-      await api.post('/users', { name: nome, email });
-      setNome('');
-      setEmail('');
-      setError('');
-      navigate('/usuarios?success=1', { state: { successMessage: 'Usuário criado com sucesso!' } });
+      if (id) {
+        await api.put(`/users/${id}`, { name: nome, email });
+        navigate('/usuarios', { state: { successMessage: 'Usuário atualizado com sucesso!' } });
+      } else {
+        await api.post('/users', { name: nome, email });
+        navigate('/usuarios', { state: { successMessage: 'Usuário criado com sucesso!' } });
+      }
     } catch (err) {
       console.error(err);
       if (err.response && err.response.data.errors) {
@@ -31,14 +52,18 @@ export default function UsuarioForm() {
       } else if (err.response && err.response.data.error) {
         setError(err.response.data.error);
       } else {
-        setError('Erro ao criar usuário.');
+        setError('Erro ao salvar usuário.');
       }
     }
   };
 
+  const handleCancel = () => {
+    navigate('/usuarios'); // volta para a listagem
+  };
+
   return (
     <div className="container">
-      <h2>Novo Usuário</h2>
+      <h2>{id ? 'Editar Usuário' : 'Novo Usuário'}</h2>
       <form onSubmit={handleSubmit}>
         <Input
           label="Nome"
@@ -54,7 +79,12 @@ export default function UsuarioForm() {
           placeholder="Digite o email do usuário"
           error={error}
         />
-        <Button type="submit">Salvar</Button>
+        <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+          <Button type="submit">{id ? 'Atualizar' : 'Salvar'}</Button>
+          <Button type="button" onClick={handleCancel} style={{ backgroundColor: '#ccc', color: '#000' }}>
+            Cancelar
+          </Button>
+        </div>
       </form>
     </div>
   );

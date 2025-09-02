@@ -14,8 +14,10 @@ export default function AppRoutes() {
         <Route path="/" element={<Home />} />
         <Route path="/usuarios" element={<UsuarioList />} />
         <Route path="/usuarios/novo" element={<UsuarioForm />} />
+        <Route path="/usuarios/editar/:id" element={<UsuarioForm />} />
         <Route path="/servicos" element={<ServicoList />} />
         <Route path="/servicos/novo" element={<ServicoForm />} />
+        <Route path="/servicos/editar/:id" element={<ServicoForm />} />
       </Routes>
     </BrowserRouter>
   );
