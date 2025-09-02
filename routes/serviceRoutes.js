@@ -1,4 +1,3 @@
-// routes/serviceRoutes.js
 const express = require('express');
 const router = express.Router();
 const Service = require('../models/service');
@@ -9,7 +8,6 @@ router.post('/services', async (req, res) => {
   try {
     const { userId, title, description } = req.body;
 
-    // Verifica se o usuário existe
     const user = await User.findByPk(userId);
     if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
 
@@ -38,13 +36,11 @@ router.get('/users/:userId/services', async (req, res) => {
   res.json(services);
 });
 
-// Rota para listar um serviço específico
+// Listar um serviço específico
 router.get('/services/:id', async (req, res) => {
   try {
     const service = await Service.findByPk(req.params.id, { include: User });
-    if (!service) {
-      return res.status(404).json({ message: 'Serviço não encontrado' });
-    }
+    if (!service) return res.status(404).json({ message: 'Serviço não encontrado' });
     res.json(service);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -54,9 +50,16 @@ router.get('/services/:id', async (req, res) => {
 // Atualizar serviço
 router.put('/services/:id', async (req, res) => {
   try {
+    const { userId } = req.body;
+
+    if (userId) {
+      const user = await User.findByPk(userId);
+      if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
+    }
+
     const [updated] = await Service.update(req.body, { where: { id: req.params.id } });
     if (updated) {
-      const updatedService = await Service.findByPk(req.params.id);
+      const updatedService = await Service.findByPk(req.params.id, { include: User });
       return res.json(updatedService);
     }
     return res.status(404).json({ message: 'Serviço não encontrado' });

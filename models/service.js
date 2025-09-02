@@ -1,4 +1,3 @@
-// models/service.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 const User = require('./user');
@@ -9,17 +8,20 @@ const Service = sequelize.define('Service', {
     allowNull: false,
     validate: {
       notNull: { msg: "O título do serviço é obrigatório" },
-      notEmpty: { msg: "O título não pode ser vazio" },
-    },
+      notEmpty: { msg: "O título do serviço não pode ser vazio" }
+    }
   },
   description: {
-    type: DataTypes.TEXT,
-    allowNull: true,
+    type: DataTypes.TEXT
+  },
+  userId: {
+    type: DataTypes.INTEGER,
+    allowNull: false
   }
 });
 
-// Relação: um usuário tem muitos serviços
-User.hasMany(Service, { foreignKey: 'userId', onDelete: 'CASCADE' });
-Service.belongsTo(User, { foreignKey: 'userId' });
+// Relacionamento: Service pertence a User
+Service.belongsTo(User, { foreignKey: 'userId', onDelete: 'CASCADE' });
+User.hasMany(Service, { foreignKey: 'userId' });
 
 module.exports = Service;
