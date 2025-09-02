@@ -1,0 +1,25 @@
+{
+  "name": "crud-node-express-sequelize",
+  "version": "1.0.0",
+  "description": "Simples CRUD com Node, express e sequelize",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gilbertsampaio/crud-node-express-sequelize.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Gilbertsampaio/crud-node-express-sequelize/issues"
+  },
+  "homepage": "https://github.com/Gilbertsampaio/crud-node-express-sequelize#readme",
+  "dependencies": {
+    "express": "^5.1.0",
+    "mysql2": "^3.14.4",
+    "sequelize": "^6.37.7"
+  }
+}
