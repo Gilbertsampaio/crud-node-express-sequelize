@@ -4,7 +4,7 @@ const Service = require('../models/service');
 const User = require('../models/user');
 
 // Criar serviço
-router.post('/services', async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { userId, title, description } = req.body;
 
@@ -22,13 +22,13 @@ router.post('/services', async (req, res) => {
 });
 
 // Listar todos os serviços
-router.get('/services', async (req, res) => {
+router.get('/', async (req, res) => {
   const services = await Service.findAll({ include: User });
   res.json(services);
 });
 
 // Listar serviços de um usuário específico
-router.get('/users/:userId/services', async (req, res) => {
+router.get('/:userId/services', async (req, res) => {
   const services = await Service.findAll({
     where: { userId: req.params.userId },
     include: User
@@ -37,7 +37,7 @@ router.get('/users/:userId/services', async (req, res) => {
 });
 
 // Listar um serviço específico
-router.get('/services/:id', async (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
     const service = await Service.findByPk(req.params.id, { include: User });
     if (!service) return res.status(404).json({ message: 'Serviço não encontrado' });
@@ -48,7 +48,7 @@ router.get('/services/:id', async (req, res) => {
 });
 
 // Atualizar serviço
-router.put('/services/:id', async (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
     const { userId } = req.body;
 
@@ -72,7 +72,7 @@ router.put('/services/:id', async (req, res) => {
 });
 
 // Deletar serviço
-router.delete('/services/:id', async (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
     const deleted = await Service.destroy({ where: { id: req.params.id } });
     if (deleted) return res.json({ message: 'Serviço deletado com sucesso' });
