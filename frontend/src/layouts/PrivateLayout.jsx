@@ -1,13 +1,13 @@
 // src/layouts/PrivateLayout.jsx
 import NavBar from '../components/common/NavBar';
+import Footer from '../components/common/Footer';
 
 export default function PrivateLayout({ children }) {
   return (
-    <>
+    <div className="app-wrapper">
       <NavBar />
-      {/* <div className="container"> */}
-        {children}
-      {/* </div> */}
-    </>
+      <main>{children}</main>
+      <Footer />
+    </div>
   );
 }

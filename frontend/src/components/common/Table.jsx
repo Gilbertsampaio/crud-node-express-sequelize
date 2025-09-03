@@ -1,6 +1,6 @@
+// Table.jsx
 import './Table.css';
 
-// Table.jsx
 export default function Table({ columns, data, emptyMessage = 'Nenhum registro encontrado.' }) {
   return (
     <table>
@@ -24,12 +24,20 @@ export default function Table({ columns, data, emptyMessage = 'Nenhum registro e
           ))
         ) : (
           <tr>
-            <td colSpan={columns.length} className="table-empty" style={{ textAlign: 'center', padding: '15px', fontSize: '14px' }}>
+            <td colSpan={columns.length} className="table-empty">
               {emptyMessage}
             </td>
           </tr>
         )}
       </tbody>
+      <tfoot>
+        <tr>
+          <td colSpan={columns.length} className="table-footer">
+            {data && data.length > 0 && `Total de registros: ${data.length}`}
+          </td>
+
+        </tr>
+      </tfoot>
     </table>
   );
 }

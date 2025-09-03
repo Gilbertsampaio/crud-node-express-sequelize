@@ -1,19 +1,80 @@
+/* Tabela básica */
 table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate; /* necessário para border-radius no thead */
+  border-spacing: 0;
   margin-top: 1rem;
+  font-family: Arial, sans-serif;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
-th, td {
+/* Cabeçalho */
+th {
+  background-color: #4a90e2; /* azul suave */
+  color: white;
+  font-weight: 600;
   padding: 0.8rem;
   text-align: left;
+}
+
+/* Arredondar apenas cantos do primeiro e último th */
+thead th:first-child {
+  border-top-left-radius: 8px;
+}
+
+thead th:last-child {
+  border-top-right-radius: 8px;
+}
+
+/* Linhas da tabela */
+tr {
+  transition: background-color 0.3s ease;
+}
+
+/* Linhas alternadas */
+tr:nth-child(even) {
+  background-color: #f9faff; /* azul clarinho */
+}
+
+tr:nth-child(odd) {
+  background-color: #ffffff; /* branco */
+}
+
+/* Hover */
+tr:hover {
+  background-color: #e6f0ff;
+  cursor: pointer;
+}
+
+/* Células */
+td {
+  padding: 0.8rem;
   border-bottom: 1px solid #ddd;
 }
 
-th {
-  background-color: #f5f5f5;
+/* Última linha sem borda inferior */
+tr:last-child td {
+  border-bottom: none;
 }
 
-tr:hover {
-  background-color: #f1f7ff;
+/* Para colunas de ações */
+th.actions-column,
+td.actions-column {
+  text-align: right;
+}
+
+.table-empty {
+  text-align: center;
+}
+
+.table-footer {
+  background-color: #dedee4;
+  padding: 0.8rem;
+  font-weight: bold;
+  text-align: right;
+  border-top: 1px solid #ddd;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  color: #555;
+  height: 40px;
 }

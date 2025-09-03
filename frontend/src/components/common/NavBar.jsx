@@ -37,6 +37,8 @@ export default function NavBar() {
     setDropdownOpen(false);
   };
 
+  const avatarUrl = "../../../public/images/avatar.png";
+
   return (
     <>
       <nav>
@@ -47,14 +49,18 @@ export default function NavBar() {
 
         {user ? (
           <div className={`user-dropdown ${dropdownOpen ? 'open' : ''}`} ref={dropdownRef}>
-            <span className="user-name" onClick={toggleDropdown}>
-              {user.name}
-            </span>
+            <img
+              src={avatarUrl}
+              alt="Avatar do usuário"
+              className="user-avatar"
+              onClick={toggleDropdown}
+              style={{ width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer' }}
+            />
             {dropdownOpen && (
               <ul className="user-menu">
                 <li onClick={goToProfile}>
                   <FaUser size={12} style={{ marginRight: '8px' }} />
-                  Perfil do USuário
+                  Perfil de {user.name.split(' ')[0]}
                 </li>
                 <li onClick={() => { navigate("/meus-servicos"); setDropdownOpen(false); }}>
                   <FaCog size={12} style={{ marginRight: '8px' }} />
