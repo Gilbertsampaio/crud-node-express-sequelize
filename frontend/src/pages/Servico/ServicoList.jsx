@@ -5,7 +5,6 @@ import Table from '../../components/common/Table';
 import Button from '../../components/common/Button';
 import { FaPlus, FaEdit, FaTrash, FaHome } from 'react-icons/fa';
 import ConfirmModal from '../../components/common/ConfirmModal';
-import useAuth from '../../context/useAuth';
 import './ServicoList.css';
 
 export default function ServicoList({ tipo }) {
@@ -123,7 +122,7 @@ export default function ServicoList({ tipo }) {
       {successMessage && <p className="success">{successMessage}</p>}
       {error && <p className="error">{error}</p>}
 
-      <Table columns={columns} data={data} />
+      <Table columns={columns} data={data} emptyMessage="Nenhum registro encontrado."/>
 
       <ConfirmModal
         show={showModal}

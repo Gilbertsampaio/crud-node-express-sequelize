@@ -108,7 +108,7 @@ export default function UsuarioList() {
       {successMessage && <p className="success">{successMessage}</p>}
       {error && <p className="error">{error}</p>}
 
-      <Table columns={columns} data={usuarios} />
+      <Table columns={columns} data={usuarios} emptyMessage="Nenhum registro encontrado."/>
 
       <ConfirmModal
         show={showModal}

@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../../context/useAuth";
 import "../../styles/NavBar.css";
 import ConfirmModal from "./ConfirmModal";
-import { FaUser, FaSignOutAlt, FaCog } from "react-icons/fa"; // ícones
+import { FaUser, FaSignOutAlt, FaCog } from "react-icons/fa";
 
 export default function NavBar() {
   const { user, logout } = useAuth();
@@ -11,6 +11,7 @@ export default function NavBar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const navigate = useNavigate();
   const dropdownRef = useRef();
+  const location = useLocation();
 
   const handleLogoutClick = () => setShowModal(true);
   const confirmLogout = () => {
@@ -21,7 +22,6 @@ export default function NavBar() {
 
   const toggleDropdown = () => setDropdownOpen(prev => !prev);
 
-  // Fecha dropdown ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -37,46 +37,60 @@ export default function NavBar() {
     setDropdownOpen(false);
   };
 
-  const avatarUrl = "../../../public/images/avatar.png";
+  const avatarUrl = "/images/avatar.png";
+
+  const menuItems = [
+    { label: "Home", path: "/" },
+    { label: "Usuários", path: "/usuarios" },
+    { label: "Serviços", path: "/servicos" },
+    { label: "Categorias", path: "/categorias" },
+  ];
 
   return (
     <>
-      <nav>
-        <Link to="/">Home</Link>
-        <Link to="/usuarios">Usuários</Link>
-        <Link to="/servicos">Serviços</Link>
-        <Link to="/categorias">Categorias</Link>
+      <header className="topbar">
+        <nav>
+          {menuItems.map(item => (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={location.pathname === item.path ? "active" : ""}
+            >
+              {item.label}
+            </Link>
+          ))}
 
-        {user ? (
-          <div className={`user-dropdown ${dropdownOpen ? 'open' : ''}`} ref={dropdownRef}>
-            <img
-              src={avatarUrl}
-              alt="Avatar do usuário"
-              className="user-avatar"
-              onClick={toggleDropdown}
-              style={{ width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer' }}
-            />
-            {dropdownOpen && (
-              <ul className="user-menu">
-                <li onClick={goToProfile}>
-                  <FaUser size={12} style={{ marginRight: '8px' }} />
-                  Perfil de {user.name.split(' ')[0]}
-                </li>
-                <li onClick={() => { navigate("/meus-servicos"); setDropdownOpen(false); }}>
-                  <FaCog size={12} style={{ marginRight: '8px' }} />
-                  Meus Serviços
-                </li>
-                <li onClick={handleLogoutClick}>
-                  <FaSignOutAlt size={12} style={{ marginRight: '8px' }} />
-                  Sair do Sistema
-                </li>
-              </ul>
-            )}
-          </div>
-        ) : (
-          <Link to="/login">Login</Link>
-        )}
-      </nav>
+          {user ? (
+            <div className={`user-dropdown ${dropdownOpen ? 'open' : ''}`} ref={dropdownRef}>
+              <img
+                src={avatarUrl}
+                alt="Avatar do usuário"
+                className="user-avatar"
+                onClick={toggleDropdown}
+                style={{ width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer' }}
+              />
+              {dropdownOpen && (
+                <ul className="user-menu">
+                  <li onClick={goToProfile}>
+                    <FaUser size={12} style={{ marginRight: '8px' }} />
+                    Perfil de {user.name.split(' ')[0]}
+                  </li>
+                  <li onClick={() => { navigate("/meus-servicos"); setDropdownOpen(false); }}>
+                    <FaCog size={12} style={{ marginRight: '8px' }} />
+                    Meus Serviços
+                  </li>
+                  <li onClick={handleLogoutClick}>
+                    <FaSignOutAlt size={12} style={{ marginRight: '8px' }} />
+                    Sair do Sistema
+                  </li>
+                </ul>
+              )}
+            </div>
+          ) : (
+            <Link to="/login">Login</Link>
+          )}
+        </nav>
+      </header>
 
       <ConfirmModal
         show={showModal}

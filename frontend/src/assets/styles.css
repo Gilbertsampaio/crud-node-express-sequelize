@@ -42,6 +42,11 @@ button {
   gap: 20px;
 }
 
+.main-content {
+  text-align: center;
+  width: 100%;
+}
+
 /* Cards da Home */
 .card-container {
   display: flex;
@@ -298,7 +303,7 @@ button.action {
   padding: 15px 0;
   text-align: center;
   font-size: 0.9rem;
-  margin-top: 30px;
+  margin-top: 0px;
 }
 
 .footer-container {

@@ -78,3 +78,17 @@ td.actions-column {
   color: #555;
   height: 40px;
 }
+
+.table-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.table-search {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  width: 250px;
+  font-size: 14px;
+}

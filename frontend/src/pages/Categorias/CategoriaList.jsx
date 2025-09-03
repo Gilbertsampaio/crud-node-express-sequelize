@@ -114,7 +114,7 @@ export default function CategoriaList() {
       <Table
         columns={columns}
         data={categorias}
-        emptyMessage="Ainda não existem categorias cadastradas."
+        emptyMessage="Nenhum registro encontrado."
       />
 
       <ConfirmModal

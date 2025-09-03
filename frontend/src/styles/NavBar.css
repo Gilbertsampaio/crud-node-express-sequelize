@@ -1,15 +1,11 @@
 /* Navbar */
 nav {
-  background-color: #333;
-  padding: 10px 20px;
   display: flex;
   align-items: center;
   justify-content: start; /* links à esquerda */
   color: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  
+  
 }
 
 /* Links da Navbar */
@@ -20,12 +16,18 @@ nav a {
   font-weight: 500;
   padding: 10px 10px;
   border-radius: 4px;
+  transition: all .3s ease;
   transition: background-color 0.3s, color 0.3s, transform 0.2s;
+}
+
+nav a.active {
+  font-weight: bold;
+  background-color: rgba(255, 255, 255, 0.15);
 }
 
 nav a:hover {
   background-color: rgba(255, 255, 255, 0.15);
-  color: #e0e7ff;
+  transition: all .3s ease;
   transform: translateY(-2px);
 }
 
