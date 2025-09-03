@@ -1,23 +1,131 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Home from '../pages/Home/Home';
-import UsuarioList from '../pages/Usuario/UsuarioList';
-import UsuarioForm from '../pages/Usuario/UsuarioForm';
-import ServicoList from '../pages/Servico/ServicoList';
-import ServicoForm from '../pages/Servico/ServicoForm';
-import NavBar from '../components/common/NavBar';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Home from "../pages/Home/Home";
+import UsuarioList from "../pages/Usuario/UsuarioList";
+import UsuarioForm from "../pages/Usuario/UsuarioForm";
+import ServicoList from "../pages/Servico/ServicoList";
+import ServicoForm from "../pages/Servico/ServicoForm";
+import CategoriaList from '../pages/Categorias/CategoriaList';
+import CategoriaForm from '../pages/Categorias/CategoriaForm';
+import Login from "../pages/Login";
+import PrivateRoute from "../components/PrivateRoute";
+import PrivateLayout from "../layouts/PrivateLayout";
+import PublicLayout from "../layouts/PublicLayout";
 
 export default function AppRoutes() {
   return (
     <BrowserRouter>
-      <NavBar />
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/usuarios" element={<UsuarioList />} />
-        <Route path="/usuarios/novo" element={<UsuarioForm />} />
-        <Route path="/usuarios/editar/:id" element={<UsuarioForm />} />
-        <Route path="/servicos" element={<ServicoList />} />
-        <Route path="/servicos/novo" element={<ServicoForm />} />
-        <Route path="/servicos/editar/:id" element={<ServicoForm />} />
+        {/* Rota pública com layout */}
+        <Route
+          path="/login"
+          element={
+            <PublicLayout>
+              <Login />
+            </PublicLayout>
+          }
+        />
+
+        {/* Rotas privadas com layout */}
+        <Route
+          path="/"
+          element={
+            <PrivateRoute>
+              <PrivateLayout>
+                <Home />
+              </PrivateLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/usuarios"
+          element={
+            <PrivateRoute>
+              <PrivateLayout>
+                <UsuarioList />
+              </PrivateLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/usuarios/novo"
+          element={
+            <PrivateRoute>
+              <PrivateLayout>
+                <UsuarioForm />
+              </PrivateLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/usuarios/editar/:id"
+          element={
+            <PrivateRoute>
+              <PrivateLayout>
+                <UsuarioForm />
+              </PrivateLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/servicos"
+          element={
+            <PrivateRoute>
+              <PrivateLayout>
+                <ServicoList />
+              </PrivateLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/servicos/novo"
+          element={
+            <PrivateRoute>
+              <PrivateLayout>
+                <ServicoForm />
+              </PrivateLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/servicos/editar/:id"
+          element={
+            <PrivateRoute>
+              <PrivateLayout>
+                <ServicoForm />
+              </PrivateLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/categorias"
+          element={
+            <PrivateRoute>
+              <PrivateLayout>
+                <CategoriaList />
+              </PrivateLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/categorias/novo"
+          element={
+            <PrivateRoute>
+              <PrivateLayout>
+                <CategoriaForm />
+              </PrivateLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/categorias/editar/:id"
+          element={
+            <PrivateRoute>
+              <PrivateLayout>
+                <CategoriaForm />
+              </PrivateLayout>
+            </PrivateRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

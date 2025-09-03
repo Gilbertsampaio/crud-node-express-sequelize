@@ -1,31 +1,31 @@
-import { useNavigate } from 'react-router-dom';
-import Card from '../../components/common/Card';
 import { FaUsers, FaCog } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
+import '../../assets/styles.css';
 
 export default function Home() {
-  const navigate = useNavigate();
-
   return (
     <div className="container">
-      <h1>Bem-vindo ao Sistema</h1>
+      <h2>Bem-vindo ao Sistema</h2>
       <p>Use o menu acima para gerenciar Usuários e Serviços.</p>
 
-      <div className="card-container" style={{ display: 'flex', gap: '20px' }}>
-        <div style={{ cursor: 'pointer' }} onClick={() => navigate('/usuarios')}>
-          <Card 
-            title="Usuários"
-            description="Visualize, adicione ou edite usuários cadastrados."
-            icon={<FaUsers size={40} style={{ marginBottom: '10px' }} />}
-          />
-        </div>
+      <div className="card-container">
+        <Link to="/usuarios" className="card">
+          <FaUsers size={40} />
+          <h3>Usuários</h3>
+          <p>Visualize, adicione ou edite usuários cadastrados.</p>
+        </Link>
 
-        <div style={{ cursor: 'pointer' }} onClick={() => navigate('/servicos')}>
-          <Card 
-            title="Serviços"
-            description="Gerencie os serviços disponíveis e suas informações."
-            icon={<FaCog size={40} style={{ marginBottom: '10px' }} />}
-          />
-        </div>
+        <Link to="/servicos" className="card">
+          <FaCog size={40} />
+          <h3>Serviços</h3>
+          <p>Gerencie os serviços disponíveis e suas informações.</p>
+        </Link>
+
+        <Link to="/categorias" className="card">
+          <FaCog size={40} />
+          <h3>Categorias</h3>
+          <p>Gerencie as categorias de serviços disponiveis.</p>
+        </Link>
       </div>
     </div>
   );

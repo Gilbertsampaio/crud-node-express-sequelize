@@ -1,35 +1,33 @@
-import { useEffect, useState, useContext } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import api from '../../api/api';
 import Table from '../../components/common/Table';
 import Button from '../../components/common/Button';
-import { FaPlus, FaEdit, FaHome, FaTrash } from 'react-icons/fa';
-import './UsuarioList.css';
+import { FaPlus, FaEdit, FaTrash, FaHome } from 'react-icons/fa';
 import ConfirmModal from '../../components/common/ConfirmModal';
-import AuthContext from '../../context/AuthContext';
+import './CategoriaList.css';
 
-export default function UsuarioList() {
-  const { user: currentUser, loading } = useContext(AuthContext); // pega o usuário logado
-  const [usuarios, setUsuarios] = useState([]);
+export default function CategoriaList() {
+  const [categorias, setCategorias] = useState([]);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
 
   const location = useLocation();
   const navigate = useNavigate();
 
-  const fetchUsuarios = async () => {
+  const fetchCategorias = async () => {
     try {
-      const resUsuarios = await api.get('/users');
-      setUsuarios(resUsuarios.data);
+      const res = await api.get('/categories');
+      setCategorias(res.data);
     } catch (err) {
       console.error(err);
-      setError('Erro ao buscar dados: ' + err.message);
+      setError('Erro ao buscar categorias: ' + (err.message || ''));
     }
   };
 
-  useEffect(() => { fetchUsuarios(); }, []);
+  useEffect(() => { fetchCategorias(); }, []);
 
   useEffect(() => {
     if (location.state?.successMessage) {
@@ -38,53 +36,49 @@ export default function UsuarioList() {
     }
   }, [location]);
 
-  const handleEdit = (id) => navigate(`/usuarios/editar/${id}`);
-  const handleNew = () => navigate('/usuarios/novo');
+  const handleEdit = (id) => navigate(`/categorias/editar/${id}`);
+  const handleNew = () => navigate('/categorias/novo');
   const handleHome = () => navigate('/');
 
   const handleDeleteClick = (id) => {
-    setSelectedUserId(id);
+    setSelectedId(id);
     setShowModal(true);
   };
 
   const confirmDelete = async () => {
     try {
-      await api.delete(`/users/${selectedUserId}`);
-      setSuccessMessage('Usuário excluído com sucesso!');
-      fetchUsuarios();
+      await api.delete(`/categories/${selectedId}`);
+      setSuccessMessage('Categoria excluída com sucesso!');
+      fetchCategorias();
     } catch (err) {
       console.error(err);
-      setError('Erro ao excluir usuário: ' + err.message);
+      setError('Erro ao excluir categoria: ' + (err.message || ''));
     } finally {
       setShowModal(false);
-      setSelectedUserId(null);
+      setSelectedId(null);
     }
   };
 
   const cancelDelete = () => {
     setShowModal(false);
-    setSelectedUserId(null);
+    setSelectedId(null);
   };
-
-  if (loading) return <p>Carregando...</p>; // espera o carregamento do contexto
 
   const columns = [
     { key: 'id', label: 'ID' },
     { key: 'name', label: 'Nome' },
-    { key: 'email', label: 'E-mail' },
+    { key: 'description', label: 'Descrição' },
     {
       key: 'actions',
       label: 'Ações',
-      render: (usuario) => (
+      render: (cat) => (
         <div style={{ display: 'flex', gap: '5px', justifyContent: 'flex-end' }}>
-          <Button className="action" onClick={() => handleEdit(usuario.id)}>
+          <Button className="action" onClick={() => handleEdit(cat.id)}>
             <FaEdit />
           </Button>
-          {usuario.id !== currentUser.id && ( // oculta o botão se for o próprio usuário
-            <Button className="action btn-danger" onClick={() => handleDeleteClick(usuario.id)}>
-              <FaTrash />
-            </Button>
-          )}
+          <Button className="action btn-danger" onClick={() => handleDeleteClick(cat.id)}>
+            <FaTrash />
+          </Button>
         </div>
       ),
       className: 'actions-column'
@@ -94,7 +88,7 @@ export default function UsuarioList() {
   return (
     <div className="container">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-        <h2>Lista de Usuários</h2>
+        <h2>Lista de Categorias</h2>
         <div style={{ display: 'flex', gap: '10px' }}>
           <Button onClick={handleHome}>
             <FaHome style={{ marginRight: '5px' }} /> Home
@@ -108,12 +102,16 @@ export default function UsuarioList() {
       {successMessage && <p className="success">{successMessage}</p>}
       {error && <p className="error">{error}</p>}
 
-      <Table columns={columns} data={usuarios} />
+      <Table
+        columns={columns}
+        data={categorias}
+        emptyMessage="Ainda não existem categorias cadastradas."
+      />
 
       <ConfirmModal
         show={showModal}
         title="Confirmar Exclusão"
-        message="Tem certeza que deseja excluir este usuário?"
+        message="Tem certeza que deseja excluir esta categoria?"
         onConfirm={confirmDelete}
         onCancel={cancelDelete}
       />

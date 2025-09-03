@@ -10,6 +10,7 @@ export default function Input({ label, value, onChange, type = "text", placehold
         onChange={onChange}
         placeholder={placeholder}
         className={error ? "error" : ""}
+        autoComplete="new-password"
       />
       {error && <span className="error-message">{error}</span>}
     </div>

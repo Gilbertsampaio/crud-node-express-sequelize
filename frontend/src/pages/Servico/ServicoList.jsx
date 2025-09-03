@@ -3,25 +3,34 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import api from '../../api/api';
 import Table from '../../components/common/Table';
 import Button from '../../components/common/Button';
-import { FaPlus, FaEdit, FaHome } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaHome } from 'react-icons/fa';
 import './ServicoList.css';
+import ConfirmModal from '../../components/common/ConfirmModal';
+
+// ... imports permanecem iguais
 
 export default function ServicoListPage() {
   const [servicos, setServicos] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
+  const [categorias, setCategorias] = useState([]); // <-- novo state
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [selectedServiceId, setSelectedServiceId] = useState(null);
+
   const location = useLocation();
   const navigate = useNavigate();
 
   const fetchServicos = async () => {
     try {
-      const [resServicos, resUsuarios] = await Promise.all([
+      const [resServicos, resUsuarios, resCategorias] = await Promise.all([
         api.get('/services'),
-        api.get('/users')
+        api.get('/users'),
+        api.get('/categories') // <-- buscar categorias
       ]);
       setServicos(resServicos.data);
       setUsuarios(resUsuarios.data);
+      setCategorias(resCategorias.data); // <-- salvar categorias
     } catch (err) {
       console.error(err);
       setError('Erro ao buscar dados: ' + err.message);
@@ -42,23 +51,59 @@ export default function ServicoListPage() {
     return user ? user.name : 'Usuário não encontrado';
   };
 
+  const getCategoryName = (id) => { // <-- nova função
+    const cat = categorias.find(c => c.id === id);
+    return cat ? cat.name : 'Categoria não definida';
+  };
+
   const handleEdit = (id) => navigate(`/servicos/editar/${id}`);
   const handleNew = () => navigate('/servicos/novo');
   const handleHome = () => navigate('/');
+
+  const handleDeleteClick = (id) => {
+    setSelectedServiceId(id);
+    setShowModal(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await api.delete(`/services/${selectedServiceId}`);
+      setSuccessMessage('Serviço excluído com sucesso!');
+      fetchServicos();
+    } catch (err) {
+      console.error(err);
+      setError('Erro ao excluir serviço: ' + err.message);
+    } finally {
+      setShowModal(false);
+      setSelectedServiceId(null);
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowModal(false);
+    setSelectedServiceId(null);
+  };
 
   const columns = [
     { key: 'id', label: 'ID' },
     { key: 'title', label: 'Título' },
     { key: 'description', label: 'Descrição' },
     { key: 'user', label: 'Usuário' },
+    { key: 'category', label: 'Categoria' }, // <-- nova coluna
     {
       key: 'actions',
       label: 'Ações',
       render: (service) => (
-        <Button onClick={() => handleEdit(service.id)}>
-          <FaEdit style={{ marginRight: '5px' }} /> Editar
-        </Button>
-      )
+        <div style={{ display: 'flex', gap: '5px', justifyContent: 'flex-end' }}>
+          <Button className="action" onClick={() => handleEdit(service.id)}>
+            <FaEdit />
+          </Button>
+          <Button className="action btn-danger" onClick={() => handleDeleteClick(service.id)}>
+            <FaTrash />
+          </Button>
+        </div>
+      ),
+      className: 'actions-column'
     }
   ];
 
@@ -67,6 +112,7 @@ export default function ServicoListPage() {
     title: s.title,
     description: s.description,
     user: getUserName(s.userId),
+    category: getCategoryName(s.categoryId), // <-- incluir categoria
     actions: s
   }));
 
@@ -78,8 +124,8 @@ export default function ServicoListPage() {
           <Button onClick={handleHome}>
             <FaHome style={{ marginRight: '5px' }} /> Home
           </Button>
-          <Button onClick={handleNew}>
-            <FaPlus style={{ marginRight: '5px' }} /> Novo Serviço
+          <Button className="btn-success" onClick={handleNew}>
+            <FaPlus />
           </Button>
         </div>
       </div>
@@ -87,11 +133,15 @@ export default function ServicoListPage() {
       {successMessage && <p className="success">{successMessage}</p>}
       {error && <p className="error">{error}</p>}
 
-      {servicos.length > 0 ? (
-        <Table columns={columns} data={data} />
-      ) : (
-        <p>Ainda não existem serviços cadastrados.</p>
-      )}
+      <Table columns={columns} data={data} />
+
+      <ConfirmModal
+        show={showModal}
+        title="Confirmar Exclusão"
+        message="Tem certeza que deseja excluir este serviço?"
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+      />
     </div>
   );
 }

@@ -2,16 +2,17 @@ const express = require('express');
 const router = express.Router();
 const Service = require('../models/service');
 const User = require('../models/user');
+const Category = require('../models/category'); // <-- importar Category
 
 // Criar serviço
 router.post('/', async (req, res) => {
   try {
-    const { userId, title, description } = req.body;
+    const { userId, title, description, categoryId } = req.body; // <-- categoryId
 
     const user = await User.findByPk(userId);
     if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
 
-    const service = await Service.create({ userId, title, description });
+    const service = await Service.create({ userId, title, description, categoryId });
     res.json(service);
   } catch (err) {
     if (err.name === 'SequelizeValidationError') {
@@ -23,23 +24,31 @@ router.post('/', async (req, res) => {
 
 // Listar todos os serviços
 router.get('/', async (req, res) => {
-  const services = await Service.findAll({ include: User });
-  res.json(services);
+  try {
+    const services = await Service.findAll({ include: [User, Category] }); // <-- incluir Category
+    res.json(services);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Listar serviços de um usuário específico
 router.get('/:userId/services', async (req, res) => {
-  const services = await Service.findAll({
-    where: { userId: req.params.userId },
-    include: User
-  });
-  res.json(services);
+  try {
+    const services = await Service.findAll({
+      where: { userId: req.params.userId },
+      include: [User, Category] // <-- incluir Category
+    });
+    res.json(services);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Listar um serviço específico
 router.get('/:id', async (req, res) => {
   try {
-    const service = await Service.findByPk(req.params.id, { include: User });
+    const service = await Service.findByPk(req.params.id, { include: [User, Category] }); // <-- incluir Category
     if (!service) return res.status(404).json({ message: 'Serviço não encontrado' });
     res.json(service);
   } catch (err) {
@@ -50,16 +59,21 @@ router.get('/:id', async (req, res) => {
 // Atualizar serviço
 router.put('/:id', async (req, res) => {
   try {
-    const { userId } = req.body;
+    const { userId, categoryId } = req.body;
 
     if (userId) {
       const user = await User.findByPk(userId);
       if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
     }
 
+    if (categoryId) {
+      const category = await Category.findByPk(categoryId);
+      if (!category) return res.status(404).json({ message: 'Categoria não encontrada' });
+    }
+
     const [updated] = await Service.update(req.body, { where: { id: req.params.id } });
     if (updated) {
-      const updatedService = await Service.findByPk(req.params.id, { include: User });
+      const updatedService = await Service.findByPk(req.params.id, { include: [User, Category] });
       return res.json(updatedService);
     }
     return res.status(404).json({ message: 'Serviço não encontrado' });

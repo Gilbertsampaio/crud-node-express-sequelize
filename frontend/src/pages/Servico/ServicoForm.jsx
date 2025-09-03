@@ -10,11 +10,13 @@ export default function ServicoForm() {
   const [description, setDescription] = useState('');
   const [userId, setUserId] = useState('');
   const [usuarios, setUsuarios] = useState([]);
+  const [categoryId, setCategoryId] = useState(''); // <- renomeado
+  const [categorias, setCategorias] = useState([]);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { id } = useParams(); // pega o id do serviço
+  const { id } = useParams();
 
-  // Buscar usuários para selecionar
+  // Buscar usuários
   useEffect(() => {
     async function fetchUsuarios() {
       try {
@@ -27,7 +29,20 @@ export default function ServicoForm() {
     fetchUsuarios();
   }, []);
 
-  // Se houver id, carregar os dados do serviço
+  // Buscar categorias
+  useEffect(() => {
+    async function fetchCategorias() {
+      try {
+        const res = await api.get('/categories');
+        setCategorias(res.data);
+      } catch {
+        setError('Erro ao buscar categorias.');
+      }
+    }
+    fetchCategorias();
+  }, []);
+
+  // Carregar serviço se houver id
   useEffect(() => {
     if (id) {
       api.get(`/services/${id}`)
@@ -35,6 +50,7 @@ export default function ServicoForm() {
           setTitle(res.data.title);
           setDescription(res.data.description);
           setUserId(res.data.userId);
+          setCategoryId(res.data.categoryId || ''); // <- ajustado
         })
         .catch(() => setError('Erro ao carregar serviço.'));
     }
@@ -42,17 +58,18 @@ export default function ServicoForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title.trim() || !description.trim() || !userId) {
+    if (!title.trim() || !description.trim() || !userId || !categoryId) {
       setError('Todos os campos são obrigatórios.');
       return;
     }
 
     try {
+      const payload = { title, description, userId, categoryId }; // <- ajustado
       if (id) {
-        await api.put(`/services/${id}`, { title, description, userId });
+        await api.put(`/services/${id}`, payload);
         navigate('/servicos', { state: { successMessage: 'Serviço atualizado com sucesso!' } });
       } else {
-        await api.post('/services', { title, description, userId });
+        await api.post('/services', payload);
         navigate('/servicos', { state: { successMessage: 'Serviço criado com sucesso!' } });
       }
     } catch (err) {
@@ -61,12 +78,10 @@ export default function ServicoForm() {
     }
   };
 
-  const handleCancel = () => {
-    navigate('/servicos');
-  };
+  const handleCancel = () => navigate('/servicos');
 
   return (
-    <div className="container">
+    <div className="service-form-container">
       <h2>{id ? 'Editar Serviço' : 'Novo Serviço'}</h2>
       <form onSubmit={handleSubmit}>
         <Input
@@ -111,16 +126,34 @@ export default function ServicoForm() {
           ))}
         </select>
 
+        <label>Categoria</label>
+        <select
+          value={categoryId} // <- ajustado
+          onChange={e => setCategoryId(e.target.value)} // <- ajustado
+          style={{
+            width: '100%',
+            padding: '10px',
+            margin: '10px 0',
+            borderRadius: '5px',
+            border: '1px solid #ccc'
+          }}
+        >
+          <option value="">Selecione uma categoria</option>
+          {categorias.map(cat => (
+            <option key={cat.id} value={cat.id}>{cat.name}</option>
+          ))}
+        </select>
+
         {error && <p style={{ color: 'red' }}>{error}</p>}
 
         <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+          <Button className="btn-danger" type="button" onClick={handleCancel}>
+            <FaTimes style={{ marginRight: '5px' }} />
+            Cancelar
+          </Button>
           <Button type="submit">
             <FaSave style={{ marginRight: '5px' }} />
             {id ? 'Atualizar' : 'Salvar'}
-          </Button>
-          <Button type="button" onClick={handleCancel}>
-            <FaTimes style={{ marginRight: '5px' }} />
-            Cancelar
           </Button>
         </div>
       </form>
