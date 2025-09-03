@@ -51,7 +51,7 @@ router.get('/:userId/services', async (req, res) => {
   try {
     const services = await Service.findAll({
       where: { userId: req.params.userId },
-      include: [User, Category] // <-- incluir Category
+      include: [User, Category]
     });
     res.json(services);
   } catch (err) {

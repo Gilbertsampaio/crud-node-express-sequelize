@@ -10,7 +10,11 @@ describe("API Services", () => {
   // Cria um usuário antes de todos os testes
   beforeAll(async () => {
     await sequelize.sync({ force: true }); // força recriação do banco
-    const user = await User.create({ name: "User Teste", email: "user@teste.com" });
+    const user = await User.create({
+      name: "User Teste",
+      email: "user@teste.com",
+      password: "123456" // 🔑 senha obrigatória por causa do hook do bcrypt
+    });
     userId = user.id;
   });
 
@@ -66,7 +70,7 @@ describe("API Services", () => {
   it("deve listar serviços de um usuário específico", async () => {
     await Service.create({ title: "Serviço Usuário", description: "Desc", userId });
 
-    const res = await request(app).get(`/api/users/${userId}/services`);
+    const res = await request(app).get(`/api/services/${userId}/services`);
     expect(res.statusCode).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
     res.body.forEach(service => expect(service.userId).toBe(userId));

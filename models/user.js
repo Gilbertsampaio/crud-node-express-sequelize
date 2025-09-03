@@ -23,11 +23,11 @@ const User = sequelize.define('User', {
   },
   password: {
     type: DataTypes.STRING,
-    allowNull: false,
-    validate: {
-      notNull: { msg: "A senha é obrigatória" },
-      notEmpty: { msg: "A senha não pode ser vazia" },
-    },
+    allowNull: true,
+    // validate: {
+    //   notNull: { msg: "A senha é obrigatória" },
+    //   notEmpty: { msg: "A senha não pode ser vazia" },
+    // },
   },
 });
 

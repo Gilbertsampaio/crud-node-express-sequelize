@@ -21,7 +21,7 @@ describe("API Users", () => {
   it("deve criar um usuário", async () => {
     const res = await request(app)
       .post("/api/users")
-      .send({ name: "Teste User", email: "teste@exemplo.com" });
+      .send({ name: "Teste User", email: "teste@exemplo.com", password: "123456" });
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toHaveProperty("id");
@@ -29,7 +29,7 @@ describe("API Users", () => {
   });
 
   it("deve listar todos os usuários", async () => {
-    await User.create({ name: "List User", email: "list@exemplo.com" });
+    await User.create({ name: "List User", email: "list@exemplo.com", password: "123456" });
 
     const res = await request(app).get("/api/users");
     expect(res.statusCode).toBe(200);
@@ -38,7 +38,7 @@ describe("API Users", () => {
   });
 
   it("deve atualizar um usuário", async () => {
-    const novoUser = await User.create({ name: "Old Name", email: "old@exemplo.com" });
+    const novoUser = await User.create({ name: "Old Name", email: "old@exemplo.com", password: "123456" });
 
     const res = await request(app)
       .put(`/api/users/${novoUser.id}`)
@@ -49,7 +49,7 @@ describe("API Users", () => {
   });
 
   it("deve deletar um usuário", async () => {
-    const user = await User.create({ name: "Delete User", email: "delete@exemplo.com" });
+    const user = await User.create({ name: "Delete User", email: "delete@exemplo.com", password: "123456" });
 
     const res = await request(app).delete(`/api/users/${user.id}`);
     expect(res.statusCode).toBe(200);
@@ -61,7 +61,7 @@ describe("API Users", () => {
   it("não deve criar usuário sem nome", async () => {
     const res = await request(app)
       .post("/api/users")
-      .send({ email: "semnome@exemplo.com" });
+      .send({ email: "semnome@exemplo.com", password: "123456" });
 
     expect(res.statusCode).toBe(400);
     expect(res.body.errors).toContain("O nome é obrigatório");
@@ -70,7 +70,7 @@ describe("API Users", () => {
   it("não deve criar usuário sem email", async () => {
     const res = await request(app)
       .post("/api/users")
-      .send({ name: "Sem Email" });
+      .send({ name: "Sem Email", password: "123456" });
 
     expect(res.statusCode).toBe(400);
     expect(res.body.errors).toContain("O email é obrigatório");
@@ -79,18 +79,18 @@ describe("API Users", () => {
   it("não deve criar usuário com email inválido", async () => {
     const res = await request(app)
       .post("/api/users")
-      .send({ name: "Email Ruim", email: "ruim" });
+      .send({ name: "Email Ruim", email: "ruim", password: "123456" });
 
     expect(res.statusCode).toBe(400);
     expect(res.body.errors).toContain("Email inválido");
   });
 
   it("não deve criar usuário com email duplicado", async () => {
-    await User.create({ name: "Original", email: "dup@exemplo.com" });
+    await User.create({ name: "Original", email: "dup@exemplo.com", password: "123456" });
 
     const res = await request(app)
       .post("/api/users")
-      .send({ name: "Duplicado", email: "dup@exemplo.com" });
+      .send({ name: "Duplicado", email: "dup@exemplo.com", password: "123456" });
 
     expect(res.statusCode).toBe(400);
     expect(res.body.errors).toContain("Este email já está cadastrado");
@@ -99,8 +99,8 @@ describe("API Users", () => {
   // --- Validação PUT (atualização) ---
 
   it("não deve atualizar usuário com email duplicado", async () => {
-    const user1 = await User.create({ name: "User 1", email: "user1@exemplo.com" });
-    const user2 = await User.create({ name: "User 2", email: "user2@exemplo.com" });
+    const user1 = await User.create({ name: "User 1", email: "user1@exemplo.com", password: "123456" });
+    const user2 = await User.create({ name: "User 2", email: "user2@exemplo.com", password: "123456" });
 
     const res = await request(app)
       .put(`/api/users/${user2.id}`)
