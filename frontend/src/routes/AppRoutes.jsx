@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "../pages/Home/Home";
 import UsuarioList from "../pages/Usuario/UsuarioList";
 import UsuarioForm from "../pages/Usuario/UsuarioForm";
+import UsuarioView from '../pages/Usuario/UsuarioView';
 import ServicoList from "../pages/Servico/ServicoList";
 import ServicoForm from "../pages/Servico/ServicoForm";
 import CategoriaList from '../pages/Categorias/CategoriaList';
@@ -67,11 +68,31 @@ export default function AppRoutes() {
           }
         />
         <Route
+          path="/perfil"
+          element={
+            <PrivateRoute>
+              <PrivateLayout>
+                <UsuarioView />
+              </PrivateLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/perfil/editar"
+          element={
+            <PrivateRoute>
+              <PrivateLayout>
+                <UsuarioForm />
+              </PrivateLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
           path="/servicos"
           element={
             <PrivateRoute>
               <PrivateLayout>
-                <ServicoList />
+                <ServicoList tipo="geral"/>
               </PrivateLayout>
             </PrivateRoute>
           }
@@ -92,6 +113,16 @@ export default function AppRoutes() {
             <PrivateRoute>
               <PrivateLayout>
                 <ServicoForm />
+              </PrivateLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/meus-servicos"
+          element={
+            <PrivateRoute>
+              <PrivateLayout>
+                <ServicoList tipo="meus"/>
               </PrivateLayout>
             </PrivateRoute>
           }

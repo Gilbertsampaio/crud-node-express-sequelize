@@ -4,6 +4,7 @@ const router = express.Router();
 const User = require('../models/user');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+require('dotenv').config(); // garante que o .env seja carregado
 
 router.post('/', async (req, res) => {
   const { email, password } = req.body;
@@ -15,9 +16,21 @@ router.post('/', async (req, res) => {
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) return res.status(401).json({ error: 'Senha incorreta' });
 
-    const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET || 'secret', { expiresIn: '1h' });
+    // Cria token JWT usando variáveis de ambiente
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      process.env.JWT_SECRET, // deve estar definido no .env
+      { expiresIn: process.env.JWT_EXPIRES_IN || '1h' } // expiração dinâmica
+    );
 
-    res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email
+      }
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -4,15 +4,13 @@ import api from '../../api/api';
 import Table from '../../components/common/Table';
 import Button from '../../components/common/Button';
 import { FaPlus, FaEdit, FaTrash, FaHome } from 'react-icons/fa';
-import './ServicoList.css';
 import ConfirmModal from '../../components/common/ConfirmModal';
+import useAuth from '../../context/useAuth';
+import './ServicoList.css';
 
-// ... imports permanecem iguais
-
-export default function ServicoListPage() {
+export default function ServicoList({ tipo }) {
   const [servicos, setServicos] = useState([]);
-  const [usuarios, setUsuarios] = useState([]);
-  const [categorias, setCategorias] = useState([]); // <-- novo state
+  const [categorias, setCategorias] = useState([]);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -23,21 +21,20 @@ export default function ServicoListPage() {
 
   const fetchServicos = async () => {
     try {
-      const [resServicos, resUsuarios, resCategorias] = await Promise.all([
-        api.get('/services'),
-        api.get('/users'),
-        api.get('/categories') // <-- buscar categorias
+      const endpoint = tipo === "meus" ? "/services/my" : "/services";
+      const [resServicos, resCategorias] = await Promise.all([
+        api.get(endpoint),
+        api.get('/categories')
       ]);
       setServicos(resServicos.data);
-      setUsuarios(resUsuarios.data);
-      setCategorias(resCategorias.data); // <-- salvar categorias
+      setCategorias(resCategorias.data);
     } catch (err) {
       console.error(err);
       setError('Erro ao buscar dados: ' + err.message);
     }
   };
 
-  useEffect(() => { fetchServicos(); }, []);
+  useEffect(() => { fetchServicos(); }, [tipo]);
 
   useEffect(() => {
     if (location.state?.successMessage) {
@@ -46,12 +43,7 @@ export default function ServicoListPage() {
     }
   }, [location]);
 
-  const getUserName = (id) => {
-    const user = usuarios.find(u => u.id === id);
-    return user ? user.name : 'Usuário não encontrado';
-  };
-
-  const getCategoryName = (id) => { // <-- nova função
+  const getCategoryName = (id) => {
     const cat = categorias.find(c => c.id === id);
     return cat ? cat.name : 'Categoria não definida';
   };
@@ -88,14 +80,13 @@ export default function ServicoListPage() {
     { key: 'id', label: 'ID' },
     { key: 'title', label: 'Título' },
     { key: 'description', label: 'Descrição' },
-    { key: 'user', label: 'Usuário' },
-    { key: 'category', label: 'Categoria' }, // <-- nova coluna
+    { key: 'category', label: 'Categoria' },
     {
       key: 'actions',
       label: 'Ações',
       render: (service) => (
         <div style={{ display: 'flex', gap: '5px', justifyContent: 'flex-end' }}>
-          <Button className="action" onClick={() => handleEdit(service.id)}>
+          <Button className="action btn-primary" onClick={() => handleEdit(service.id)}>
             <FaEdit />
           </Button>
           <Button className="action btn-danger" onClick={() => handleDeleteClick(service.id)}>
@@ -111,18 +102,17 @@ export default function ServicoListPage() {
     id: s.id,
     title: s.title,
     description: s.description,
-    user: getUserName(s.userId),
-    category: getCategoryName(s.categoryId), // <-- incluir categoria
+    category: getCategoryName(s.categoryId),
     actions: s
   }));
 
   return (
     <div className="container">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-        <h2>Lista de Serviços</h2>
+        <h2>{tipo === "meus" ? "Meus Serviços" : "Todos os Serviços"}</h2>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <Button onClick={handleHome}>
-            <FaHome style={{ marginRight: '5px' }} /> Home
+          <Button className="btn-primary" onClick={handleHome}>
+            <FaHome />
           </Button>
           <Button className="btn-success" onClick={handleNew}>
             <FaPlus />

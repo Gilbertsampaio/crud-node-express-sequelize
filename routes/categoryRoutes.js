@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Category = require('../models/category');
+const Service = require('../models/service'); // importa o model Service
 
 // Criar categoria
 router.post('/', async (req, res) => {
@@ -55,11 +56,22 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// Deletar categoria
+// Deletar categoria (com checagem de serviços vinculados)
 router.delete('/:id', async (req, res) => {
   try {
-    const deleted = await Category.destroy({ where: { id: req.params.id } });
+    const { id } = req.params;
+
+    // Verifica se há serviços vinculados a esta categoria
+    const servicesCount = await Service.count({ where: { categoryId: id } });
+    if (servicesCount > 0) {
+      return res.status(400).json({
+        message: 'Não é possível excluir a categoria, pois está associada a um ou mais serviços.'
+      });
+    }
+
+    const deleted = await Category.destroy({ where: { id } });
     if (deleted) return res.json({ message: 'Categoria deletada com sucesso' });
+
     return res.status(404).json({ message: 'Categoria não encontrada' });
   } catch (err) {
     res.status(500).json({ error: err.message });

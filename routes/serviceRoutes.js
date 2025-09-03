@@ -2,12 +2,13 @@ const express = require('express');
 const router = express.Router();
 const Service = require('../models/service');
 const User = require('../models/user');
-const Category = require('../models/category'); // <-- importar Category
+const Category = require('../models/category'); 
+const authMiddleware = require('../authMiddleware/authMiddleware');
 
 // Criar serviço
 router.post('/', async (req, res) => {
   try {
-    const { userId, title, description, categoryId } = req.body; // <-- categoryId
+    const { userId, title, description, categoryId } = req.body; 
 
     const user = await User.findByPk(userId);
     if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
@@ -25,10 +26,23 @@ router.post('/', async (req, res) => {
 // Listar todos os serviços
 router.get('/', async (req, res) => {
   try {
-    const services = await Service.findAll({ include: [User, Category] }); // <-- incluir Category
+    const services = await Service.findAll({ include: [User, Category] });
     res.json(services);
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// listar apenas meus serviços
+router.get("/my", authMiddleware, async (req, res) => {
+  try {
+    const services = await Service.findAll({
+      where: { userId: req.user.id }
+    });
+    res.json(services);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro ao buscar seus serviços." });
   }
 });
 

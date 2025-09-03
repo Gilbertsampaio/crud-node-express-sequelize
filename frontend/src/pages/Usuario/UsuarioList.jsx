@@ -77,7 +77,7 @@ export default function UsuarioList() {
       label: 'Ações',
       render: (usuario) => (
         <div style={{ display: 'flex', gap: '5px', justifyContent: 'flex-end' }}>
-          <Button className="action" onClick={() => handleEdit(usuario.id)}>
+          <Button className="action btn-primary" onClick={() => handleEdit(usuario.id)}>
             <FaEdit />
           </Button>
           {usuario.id !== currentUser.id && ( // oculta o botão se for o próprio usuário
@@ -96,8 +96,8 @@ export default function UsuarioList() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
         <h2>Lista de Usuários</h2>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <Button onClick={handleHome}>
-            <FaHome style={{ marginRight: '5px' }} /> Home
+          <Button className="btn-primary" onClick={handleHome}>
+            <FaHome />
           </Button>
           <Button className="btn-success" onClick={handleNew}>
             <FaPlus />

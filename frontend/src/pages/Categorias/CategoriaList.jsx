@@ -5,6 +5,7 @@ import Table from '../../components/common/Table';
 import Button from '../../components/common/Button';
 import { FaPlus, FaEdit, FaTrash, FaHome } from 'react-icons/fa';
 import ConfirmModal from '../../components/common/ConfirmModal';
+import AlertModal from '../../components/common/AlertModal';
 import './CategoriaList.css';
 
 export default function CategoriaList() {
@@ -13,6 +14,9 @@ export default function CategoriaList() {
   const [successMessage, setSuccessMessage] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
+
+  const [alertMessage, setAlertMessage] = useState('');
+  const [showAlert, setShowAlert] = useState(false);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -52,7 +56,13 @@ export default function CategoriaList() {
       fetchCategorias();
     } catch (err) {
       console.error(err);
-      setError('Erro ao excluir categoria: ' + (err.message || ''));
+
+      // Aqui exibimos o modal de alerta em vez da mensagem na tela
+      const message =
+        err.response?.data?.message ||
+        'Não foi possível excluir a categoria.';
+      setAlertMessage(message);
+      setShowAlert(true);
     } finally {
       setShowModal(false);
       setSelectedId(null);
@@ -73,7 +83,7 @@ export default function CategoriaList() {
       label: 'Ações',
       render: (cat) => (
         <div style={{ display: 'flex', gap: '5px', justifyContent: 'flex-end' }}>
-          <Button className="action" onClick={() => handleEdit(cat.id)}>
+          <Button className="action btn-primary" onClick={() => handleEdit(cat.id)}>
             <FaEdit />
           </Button>
           <Button className="action btn-danger" onClick={() => handleDeleteClick(cat.id)}>
@@ -90,8 +100,8 @@ export default function CategoriaList() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
         <h2>Lista de Categorias</h2>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <Button onClick={handleHome}>
-            <FaHome style={{ marginRight: '5px' }} /> Home
+          <Button className="btn-primary" onClick={handleHome}>
+            <FaHome />
           </Button>
           <Button className="btn-success" onClick={handleNew}>
             <FaPlus />
@@ -100,7 +110,6 @@ export default function CategoriaList() {
       </div>
 
       {successMessage && <p className="success">{successMessage}</p>}
-      {error && <p className="error">{error}</p>}
 
       <Table
         columns={columns}
@@ -114,6 +123,13 @@ export default function CategoriaList() {
         message="Tem certeza que deseja excluir esta categoria?"
         onConfirm={confirmDelete}
         onCancel={cancelDelete}
+      />
+
+      <AlertModal
+        show={showAlert}
+        title="Atenção"
+        message={alertMessage}
+        onClose={() => setShowAlert(false)}
       />
     </div>
   );

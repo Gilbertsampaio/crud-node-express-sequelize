@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/user');
-const bcrypt = require('bcrypt'); // Para hash de senha
+const bcrypt = require('bcrypt');
+const authMiddleware = require('../authMiddleware/authMiddleware');
 
 // --- Criar usuário ---
 router.post('/', async (req, res) => {
@@ -30,6 +31,11 @@ router.get('/', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// --- Dados do usuário ---
+router.get('/me', authMiddleware, async (req, res) => {
+  res.json(req.user);
 });
 
 // --- Listar usuário pelo id ---
