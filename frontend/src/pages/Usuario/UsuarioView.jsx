@@ -6,6 +6,7 @@ import { FaHome, FaEdit, FaUsers } from "react-icons/fa";
 import './UsuarioView.css';
 
 export default function UsuarioViewPage() {
+
     const { id } = useParams(); // pode ser undefined se for perfil
     const navigate = useNavigate();
     const [usuario, setUsuario] = useState(null);
@@ -15,7 +16,7 @@ export default function UsuarioViewPage() {
 
     const fetchUsuario = async () => {
         try {
-            const endpoint = id ? `/users/${id}` : `/users/me`; // se não tiver id, pega perfil
+            const endpoint = id ? `/users/${id}` : `/users/me/`; // se não tiver id, pega perfil
             const res = await api.get(endpoint);
             setUsuario(res.data);
         } catch (err) {

@@ -8,7 +8,7 @@ export default function AlertModal({ show, title, message, onClose }) {
     <div className="modal-overlay">
       <div className="modal-content">
         <h3>{title}</h3>
-        <p>{message}</p>
+        <p dangerouslySetInnerHTML={{ __html: message }}></p>
         <div className="modal-buttons">
           <button className="confirm-btn" onClick={onClose}>Fechar</button>
         </div>

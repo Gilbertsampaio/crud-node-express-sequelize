@@ -1,17 +1,37 @@
-import { useContext, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useContext, useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../api/api';
 import Input from '../components/common/Input';
 import Button from '../components/common/Button';
 import AuthContext from '../context/AuthContext';
+import AlertModal from '../components/common/AlertModal';
 import './Login.css';
 
 export default function Login() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const params = new URLSearchParams(location.search);
+  const sessionExpired = params.get('sessionExpired');
+
   const { login } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const navigate = useNavigate();
+
+  const [alertMessage, setAlertMessage] = useState('');
+  const [showAlert, setShowAlert] = useState(false);
+
+  useEffect(() => {
+    if (sessionExpired) {
+      setAlertMessage('A sessão foi encerrada por inatividade.<br><br><b>Faça o login novamente.</b>');
+      setShowAlert(true);
+
+      // Remove o query param para não abrir novamente
+      const newParams = new URLSearchParams(location.search);
+      newParams.delete('sessionExpired');
+      navigate({ pathname: location.pathname, search: newParams.toString() }, { replace: true });
+    }
+  }, [sessionExpired, location, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,9 +45,9 @@ export default function Login() {
       const { token, user } = res.data;
 
       localStorage.setItem('token', token);
-      login({ ...user, token }); // salva no contexto e localStorage
+      login({ ...user, token });
 
-      navigate('/'); // redireciona para home
+      navigate('/');
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.error || 'Erro ao fazer login.');
@@ -54,6 +74,12 @@ export default function Login() {
         />
         <Button type="submit">Entrar</Button>
       </form>
+      <AlertModal
+        show={showAlert}
+        title="Atenção"
+        message={alertMessage}
+        onClose={() => setShowAlert(false)}
+      />
     </div>
   );
 }

@@ -6,8 +6,11 @@ import './Layout.css';
 import Footer from '../../components/common/Footer';
 import ConfirmModal from "./ConfirmModal";
 import useAuth from "../../context/useAuth";
+import useAuthCheck from '../../hooks/useAuthCheck';
 
 export default function Layout({ children, menuPosition = 'top' }) {
+    useAuthCheck();
+    
     const [collapsed, setCollapsed] = useState(false);
     const location = useLocation();
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5173';
