@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FaUsers, FaCog, FaListOl } from 'react-icons/fa';
+import { FaUsers, FaCogs, FaListOl } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import api from '../../api/api';
 import '../../assets/styles.css';
@@ -45,7 +45,7 @@ export default function Home() {
         </Link>
 
         <Link to="/servicos" className="card">
-          <FaCog size={40} />
+          <FaCogs size={40} />
           <h3>Serviços</h3>
           <span className="badge">{formatBadge(totalServicos)}</span>
           <p>Gerencie os serviços disponíveis e suas informações.</p>

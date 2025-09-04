@@ -1,39 +1,44 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import api from '../../api/api';
 import Table from '../../components/common/Table';
 import Button from '../../components/common/Button';
-import { FaPlus, FaEdit, FaTrash, FaHome } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaHome, FaCogs, FaUserCog } from 'react-icons/fa';
 import ConfirmModal from '../../components/common/ConfirmModal';
+import useAuth from "../../context/useAuth";
 import './ServicoList.css';
 
 export default function ServicoList({ tipo }) {
   const [servicos, setServicos] = useState([]);
   const [categorias, setCategorias] = useState([]);
+  const [usuarios, setUsuarios] = useState([]);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [selectedServiceId, setSelectedServiceId] = useState(null);
+  const { user } = useAuth();
 
   const location = useLocation();
   const navigate = useNavigate();
 
-  const fetchServicos = async () => {
+  const fetchServicos = useCallback(async () => {
     try {
-      const endpoint = tipo === "meus" ? "/services/my" : "/services";
-      const [resServicos, resCategorias] = await Promise.all([
+      const endpoint = tipo === "meus" ? `/services/my/${user.id}` : "/services";
+      const [resServicos, resCategorias, resUsuarios] = await Promise.all([
         api.get(endpoint),
-        api.get('/categories')
+        api.get("/categories"),
+        api.get("/users")
       ]);
       setServicos(resServicos.data);
       setCategorias(resCategorias.data);
+      setUsuarios(resUsuarios.data);
     } catch (err) {
       console.error(err);
-      setError('Erro ao buscar dados: ' + err.message);
+      setError("Erro ao buscar dados: " + err.message);
     }
-  };
+  }, [tipo, user.id]);
 
-  useEffect(() => { fetchServicos(); }, [tipo]);
+  useEffect(() => { fetchServicos(); }, [fetchServicos]);
 
   useEffect(() => {
     if (location.state?.successMessage) {
@@ -45,6 +50,11 @@ export default function ServicoList({ tipo }) {
   const getCategoryName = (id) => {
     const cat = categorias.find(c => c.id === id);
     return cat ? cat.name : 'Categoria não definida';
+  };
+
+  const getUserName = (id) => {
+    const u = usuarios.find(u => u.id === id);
+    return u ? u.name : 'Usuário não encontrado';
   };
 
   const handleEdit = (id) => navigate(`/servicos/editar/${id}`);
@@ -80,6 +90,7 @@ export default function ServicoList({ tipo }) {
     { key: 'title', label: 'Título' },
     { key: 'description', label: 'Descrição' },
     { key: 'category', label: 'Categoria' },
+    { key: 'userName', label: 'Criador' },
     {
       key: 'actions',
       label: 'Ações',
@@ -99,16 +110,32 @@ export default function ServicoList({ tipo }) {
 
   const data = servicos.map(s => ({
     id: s.id,
-    title: s.title,
+    title: (
+      <span style={{ whiteSpace: "nowrap"}}>
+        {s.title}
+      </span>
+    ),
     description: s.description,
-    category: getCategoryName(s.categoryId),
+    category: (
+      <span style={{ whiteSpace: "nowrap" }}>
+        {getCategoryName(s.categoryId)}
+      </span>
+    ),
+    userName: (
+      <span style={{ whiteSpace: "nowrap" }}>
+        {getUserName(s.userId)}
+      </span>
+    ),
     actions: s
   }));
 
   return (
     <div className="container">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-        <h2>{tipo === "meus" ? "Meus Serviços" : "Todos os Serviços"}</h2>
+        <h2>
+          <span style={{ marginRight: '8px' }}>{tipo === "meus" ? <FaUserCog /> : <FaCogs />}</span>
+          {tipo === "meus" ? "Meus Serviços" : "Todos os Serviços"}
+        </h2>
         <div style={{ display: 'flex', gap: '10px' }}>
           <Button className="btn-primary" onClick={handleHome}>
             <FaHome />
@@ -122,7 +149,7 @@ export default function ServicoList({ tipo }) {
       {successMessage && <p className="success">{successMessage}</p>}
       {error && <p className="error">{error}</p>}
 
-      <Table columns={columns} data={data} emptyMessage="Nenhum registro encontrado."/>
+      <Table columns={columns} data={data} emptyMessage="Nenhum registro encontrado." />
 
       <ConfirmModal
         show={showModal}

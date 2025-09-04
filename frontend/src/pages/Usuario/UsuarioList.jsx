@@ -3,9 +3,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import api from '../../api/api';
 import Table from '../../components/common/Table';
 import Button from '../../components/common/Button';
-import { FaPlus, FaEdit, FaHome, FaTrash } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaHome, FaTrash, FaUsers } from 'react-icons/fa';
 import './UsuarioList.css';
 import ConfirmModal from '../../components/common/ConfirmModal';
+import ImageModal from '../../components/common/ImageModal';
 import AuthContext from '../../context/AuthContext';
 
 export default function UsuarioList() {
@@ -15,6 +16,9 @@ export default function UsuarioList() {
   const [successMessage, setSuccessMessage] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const openImageModal = (imageUrl) => setSelectedImage(imageUrl);
+  const closeImageModal = () => setSelectedImage(null);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -37,6 +41,12 @@ export default function UsuarioList() {
       window.history.replaceState({}, '', location.pathname);
     }
   }, [location]);
+
+  useEffect(() => {
+    const onEsc = (e) => e.key === 'Escape' && closeImageModal();
+    window.addEventListener('keydown', onEsc);
+    return () => window.removeEventListener('keydown', onEsc);
+  }, []);
 
   const handleEdit = (id) => navigate(`/usuarios/editar/${id}`);
   const handleNew = () => navigate('/usuarios/novo');
@@ -66,10 +76,29 @@ export default function UsuarioList() {
     setSelectedUserId(null);
   };
 
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5173';
+
   if (loading) return <p>Carregando...</p>; // espera o carregamento do contexto
 
   const columns = [
     { key: 'id', label: 'ID' },
+    {
+      key: 'image',
+      label: 'Foto',
+      render: (usuario) => (
+        usuario.image ? (
+          <img
+            src={`${API_URL}/uploads/${usuario.image}`}
+            alt={usuario.name}
+            style={{ width: 50, height: 50, borderRadius: '50%', objectFit: 'cover', cursor: 'zoom-in' }}
+            onClick={() => openImageModal(`${API_URL}/uploads/${usuario.image}`)}
+            onError={(e) => { e.currentTarget.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50"><rect width="100%" height="100%" fill="%23eee"/></svg>'; }}
+          />
+        ) : (
+          <span>Sem foto</span>
+        )
+      )
+    },
     { key: 'name', label: 'Nome' },
     { key: 'email', label: 'E-mail' },
     {
@@ -94,7 +123,10 @@ export default function UsuarioList() {
   return (
     <div className="container">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-        <h2>Lista de Usuários</h2>
+        <h2>
+          <span style={{ marginRight: '8px' }}><FaUsers /></span>
+          Lista de Usuários
+        </h2>
         <div style={{ display: 'flex', gap: '10px' }}>
           <Button className="btn-primary" onClick={handleHome}>
             <FaHome />
@@ -108,7 +140,7 @@ export default function UsuarioList() {
       {successMessage && <p className="success">{successMessage}</p>}
       {error && <p className="error">{error}</p>}
 
-      <Table columns={columns} data={usuarios} emptyMessage="Nenhum registro encontrado."/>
+      <Table columns={columns} data={usuarios} emptyMessage="Nenhum registro encontrado." />
 
       <ConfirmModal
         show={showModal}
@@ -117,6 +149,13 @@ export default function UsuarioList() {
         onConfirm={confirmDelete}
         onCancel={cancelDelete}
       />
+
+      <ImageModal
+        show={!!selectedImage}
+        imageUrl={selectedImage}
+        onClose={closeImageModal}
+      />
     </div>
   );
+
 }

@@ -1,8 +1,11 @@
 .category-form-container {
     max-width: 600px;
-    margin: 20px auto;
+    margin: 50px auto;
     padding: 20px;
     display: flex;
     flex-direction: column;
     gap: 20px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    background: #fff;
+    border-radius: 8px;
 }

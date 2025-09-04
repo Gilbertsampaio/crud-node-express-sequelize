@@ -91,7 +91,7 @@
 
 .sidebar-link.active {
   background-color: #2c2c44;
-  font-weight: bold;
+  font-weight: normal;
 }
 
 /* Sidebar links */

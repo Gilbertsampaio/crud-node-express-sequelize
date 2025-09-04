@@ -23,18 +23,28 @@ const User = sequelize.define('User', {
   },
   password: {
     type: DataTypes.STRING,
-    allowNull: true,
-    // validate: {
-    //   notNull: { msg: "A senha é obrigatória" },
-    //   notEmpty: { msg: "A senha não pode ser vazia" },
-    // },
+    allowNull: true, // opcional
+  },
+  image: {
+    type: DataTypes.STRING,
+    allowNull: true, // nome do arquivo da imagem, pode ficar nulo
   },
 });
 
-// Hash da senha antes de salvar
+// Hash da senha antes de criar
 User.beforeCreate(async (user) => {
-  const salt = await bcrypt.genSalt(10);
-  user.password = await bcrypt.hash(user.password, salt);
+  if (user.password) {
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(user.password, salt);
+  }
+});
+
+// Hash da senha antes de atualizar (se necessário)
+User.beforeUpdate(async (user) => {
+  if (user.changed('password')) {
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(user.password, salt);
+  }
 });
 
 module.exports = User;

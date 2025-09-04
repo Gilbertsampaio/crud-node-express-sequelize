@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../api/api";
 import Button from "../../components/common/Button";
-import { FaArrowLeft, FaEdit } from "react-icons/fa";
+import { FaHome, FaEdit, FaUsers } from "react-icons/fa";
 import './UsuarioView.css';
 
 export default function UsuarioViewPage() {
@@ -32,27 +32,25 @@ export default function UsuarioViewPage() {
     if (!usuario) return <p>Carregando...</p>;
 
     return (
-        <div className="container usuario-view">
-            <div className="header">
+        <div className="container">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
                 <h2>{id ? "Visualizar Usuário" : "Meu Perfil"}</h2>
-                <div className="actions">
-                    <Button onClick={() => navigate(id ? "/usuarios" : "/")}>
-                        <FaArrowLeft style={{ marginRight: "5px" }} /> Voltar
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <Button className="btn-primary" onClick={() => navigate(id ? "/usuarios" : "/")}>
+                        <FaHome />
                     </Button>
-                    <Button onClick={() => navigate(id ? handleEdit(id) : `/perfil/editar`)}>
-                        <FaEdit style={{ marginRight: "5px" }} /> Editar
+                    <Button className="btn-primary" onClick={() => navigate(id ? handleEdit(id) : `/perfil/editar`)}>
+                        <FaEdit />
                     </Button>
                 </div>
             </div>
 
-            <div className="usuario-details">
-                <div>
-                    <strong>Nome:</strong> <span>{usuario.name}</span>
+            <div className="card-container">
+                <div className="card">
+                    <FaUsers size={40} />
+                    <h3>Nome: <span>{usuario.name}</span></h3>
+                    <p>Email: <span>{usuario.email}</span></p>
                 </div>
-                <div>
-                    <strong>Email:</strong> <span>{usuario.email}</span>
-                </div>
-                {/* Adicione mais campos caso existam */}
             </div>
         </div>
     );

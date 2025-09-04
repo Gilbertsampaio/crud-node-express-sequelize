@@ -17,5 +17,6 @@ app.use('/api/services', serviceRoutes);
 app.use('/api/categories', categoryRoutes);
 // app.use('/categories', authRequired, categoryRoutes);
 app.use('/api/login', loginRoutes);
+app.use('/uploads', express.static('public/uploads'));
 
 module.exports = app;

@@ -3,7 +3,7 @@ const router = express.Router();
 const Service = require('../models/service');
 const User = require('../models/user');
 const Category = require('../models/category'); 
-const authMiddleware = require('../authMiddleware/authMiddleware');
+// const authMiddleware = require('../authMiddleware/authMiddleware');
 
 // Criar serviço
 router.post('/', async (req, res) => {
@@ -34,15 +34,16 @@ router.get('/', async (req, res) => {
 });
 
 // listar apenas meus serviços
-router.get("/my", authMiddleware, async (req, res) => {
+router.get("/my/:userId", async (req, res) => {
   try {
+    const { userId } = req.params;
     const services = await Service.findAll({
-      where: { userId: req.user.id }
+      where: { userId }
     });
     res.json(services);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Erro ao buscar seus serviços." });
+    res.status(500).json({ error: "Erro ao buscar serviços." });
   }
 });
 

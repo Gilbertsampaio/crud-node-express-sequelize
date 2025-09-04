@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api/api';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
-import { FaSave, FaTimes } from 'react-icons/fa';
+import { FaSave, FaTimes, FaPlus, FaEdit } from 'react-icons/fa';
 
 export default function ServicoForm() {
   const [title, setTitle] = useState('');
@@ -82,7 +82,10 @@ export default function ServicoForm() {
 
   return (
     <div className="service-form-container">
-      <h2>{id ? 'Editar Serviço' : 'Novo Serviço'}</h2>
+      <h2>
+        {id ? <FaEdit size={18} style={{ marginRight: '5px' }} /> : <FaPlus size={18} style={{ marginRight: '5px' }} />}
+        {id ? 'Editar Serviço' : 'Novo Serviço'}
+      </h2>
       <form onSubmit={handleSubmit}>
         <Input
           label="Título"

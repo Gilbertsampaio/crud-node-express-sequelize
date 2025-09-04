@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../../context/useAuth";
 import "../../styles/NavBar.css";
 import ConfirmModal from "./ConfirmModal";
-import { FaUser, FaSignOutAlt, FaCog } from "react-icons/fa";
+import { FaSignOutAlt, FaUsers, FaCogs, FaListOl, FaHome, FaUser, FaUserCog } from "react-icons/fa";
 
 export default function NavBar() {
   const { user, logout } = useAuth();
@@ -37,13 +37,17 @@ export default function NavBar() {
     setDropdownOpen(false);
   };
 
-  const avatarUrl = "/images/avatar.png";
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5173';
+
+  const avatarUrl = user?.image
+    ? `${API_URL}/uploads/${user.image}`
+    : "/images/avatar.png";
 
   const menuItems = [
-    { label: "Home", path: "/" },
-    { label: "Usuários", path: "/usuarios" },
-    { label: "Serviços", path: "/servicos" },
-    { label: "Categorias", path: "/categorias" },
+    { label: 'Home', path: '/', icon: <FaHome size={14} /> },
+    { label: 'Usuários', path: '/usuarios', icon: <FaUsers size={14} /> },
+    { label: 'Serviços', path: '/servicos', icon: <FaCogs size={14} /> },
+    { label: 'Categorias', path: '/categorias', icon: <FaListOl size={14} /> },
   ];
 
   return (
@@ -56,6 +60,7 @@ export default function NavBar() {
               to={item.path}
               className={location.pathname === item.path ? "active" : ""}
             >
+              <span style={{ marginRight: '8px' }}>{item.icon}</span>
               {item.label}
             </Link>
           ))}
@@ -76,7 +81,7 @@ export default function NavBar() {
                     Perfil de {user.name.split(' ')[0]}
                   </li>
                   <li onClick={() => { navigate("/meus-servicos"); setDropdownOpen(false); }}>
-                    <FaCog size={12} style={{ marginRight: '8px' }} />
+                    <FaUserCog size={12} style={{ marginRight: '8px' }} />
                     Meus Serviços
                   </li>
                   <li onClick={handleLogoutClick}>

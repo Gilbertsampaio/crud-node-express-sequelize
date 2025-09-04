@@ -3,7 +3,8 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import api from '../../api/api';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
-import { FaSave, FaTimes } from 'react-icons/fa';
+import { FaSave, FaTimes, FaPlus, FaEdit, FaUserEdit } from 'react-icons/fa';
+import ImageModal from '../../components/common/ImageModal';
 
 export default function UsuarioForm() {
   const [nome, setNome] = useState('');
@@ -14,8 +15,13 @@ export default function UsuarioForm() {
   const navigate = useNavigate();
   const { id } = useParams(); // id de outro usuário
   const location = useLocation();
-
+  const [image, setImage] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const openImageModal = (imageUrl) => setSelectedImage(imageUrl);
+  const closeImageModal = () => setSelectedImage(null);
   const isPerfil = location.pathname === '/perfil/editar';
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5173';
 
   useEffect(() => {
     if (id || isPerfil) {
@@ -24,13 +30,23 @@ export default function UsuarioForm() {
         .then(res => {
           setNome(res.data.name);
           setEmail(res.data.email);
+
+          if (res.data.image) {
+            setPreview(`${API_URL}/uploads/${res.data.image}`);
+          }
         })
         .catch(err => {
           console.error(err);
           setError(err.response?.status === 404 ? 'Usuário não encontrado.' : 'Erro ao carregar usuário.');
         });
     }
-  }, [id, isPerfil]);
+  }, [id, isPerfil, API_URL]);
+
+  useEffect(() => {
+    const onEsc = (e) => e.key === 'Escape' && closeImageModal();
+    window.addEventListener('keydown', onEsc);
+    return () => window.removeEventListener('keydown', onEsc);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,21 +55,27 @@ export default function UsuarioForm() {
       return;
     }
 
-    const payload = { name: nome, email };
-    if (senha.trim()) payload.password = senha;
+    const formData = new FormData();
+    formData.append('name', nome);
+    formData.append('email', email);
+    if (senha.trim()) formData.append('password', senha);
+    if (image) formData.append('image', image);
 
     try {
       if (id) {
-        // editar outro usuário
-        await api.put(`/users/${id}`, payload);
+        await api.put(`/users/${id}`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
         navigate('/usuarios', { state: { successMessage: 'Usuário atualizado com sucesso!' } });
       } else if (isPerfil) {
-        // editar próprio perfil
-        await api.put('/users/me', payload);
+        await api.put('/users/me', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
         navigate('/', { state: { successMessage: 'Perfil atualizado com sucesso!' } });
       } else {
-        // criar novo usuário
-        await api.post('/users', payload);
+        await api.post('/users', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
         navigate('/usuarios', { state: { successMessage: 'Usuário criado com sucesso!' } });
       }
     } catch (err) {
@@ -68,11 +90,20 @@ export default function UsuarioForm() {
     else navigate('/usuarios');
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    setImage(file);
+    setPreview(URL.createObjectURL(file));
+  };
+
   const title = id ? 'Editar Usuário' : isPerfil ? 'Editar Meu Perfil' : 'Novo Usuário';
 
   return (
-    <div className="user-form-container" style={{ maxWidth: '500px', margin: '50px auto', padding: '20px', boxShadow: '0 0 10px rgba(0,0,0,0.1)', borderRadius: '8px', background: '#fff' }}>
-      <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>{title}</h2>
+    <div className="user-form-container">
+      <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>
+        {id ? <FaEdit size={18} style={{ marginRight: '5px' }} /> : isPerfil ? <FaUserEdit size={18} style={{ marginRight: '5px' }} /> : <FaPlus size={18} style={{ marginRight: '5px' }} />}
+        {title}
+      </h2>
       <form onSubmit={handleSubmit}>
         <Input
           label="Nome"
@@ -108,6 +139,25 @@ export default function UsuarioForm() {
           </label>
         </div>
 
+        <div style={{ marginBottom: '15px' }}>
+          <label>Imagem do usuário</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            style={{ display: 'block', marginTop: '5px' }}
+          />
+          {preview && (
+            <img
+              src={preview}
+              alt="Pré-visualização"
+              style={{ width: 100, height: 100, objectFit: 'cover', marginTop: 10, borderRadius: 5, cursor: 'zoom-in' }}
+              onClick={() => openImageModal(preview)}
+              onError={(e) => { e.currentTarget.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50"><rect width="100%" height="100%" fill="%23eee"/></svg>'; }}
+            />
+          )}
+        </div>
+
         <div style={{ display: 'flex', gap: '10px', marginTop: '15px', justifyContent: 'center' }}>
           <Button className="btn-danger" type="button" onClick={handleCancel}>
             <FaTimes style={{ marginRight: '5px' }} /> Cancelar
@@ -117,6 +167,11 @@ export default function UsuarioForm() {
           </Button>
         </div>
       </form>
+      <ImageModal
+        show={!!selectedImage}
+        imageUrl={selectedImage}
+        onClose={closeImageModal}
+      />
     </div>
   );
 }

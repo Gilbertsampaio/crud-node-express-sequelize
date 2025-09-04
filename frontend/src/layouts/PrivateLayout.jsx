@@ -1,13 +1,16 @@
 // src/layouts/PrivateLayout.jsx
 // import NavBar from '../components/common/NavBar';
 import Layout from '../components/common/Layout';
-import Footer from '../components/common/Footer';
+// import Footer from '../components/common/Footer';
 
 export default function PrivateLayout({ children }) {
+
+  const menu = import.meta.env.VITE_MENU || 'top';
+
   return (
     <div className="app-wrapper">
-      <Layout children={children} menuPosition="side"/>
-      <Footer />
+      <Layout children={children} menuPosition={menu}/>
+      {/* <Footer /> */}
     </div>
   );
 }

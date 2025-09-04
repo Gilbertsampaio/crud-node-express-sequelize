@@ -3,13 +3,26 @@ const router = express.Router();
 const User = require('../models/user');
 const bcrypt = require('bcrypt');
 const authMiddleware = require('../authMiddleware/authMiddleware');
+const multer = require('multer');
+const path = require('path');
+
+// Configuração do Multer
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'frontend/public/uploads/');
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+const upload = multer({ storage });
 
 // --- Criar usuário ---
 router.post('/', async (req, res) => {
   try {
     const { name, email } = req.body;
 
-    // Definir senha padrão e gerar hash
     const defaultPassword = '123456';
     const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
@@ -49,16 +62,18 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// --- Atualizar usuário ---
-router.put('/:id', async (req, res) => {
+// --- Atualizar usuário (com upload de imagem) ---
+router.put('/:id', upload.single('image'), async (req, res) => {
   try {
     const { name, email, password } = req.body;
-
     const updatedData = { name, email };
 
-    // Se enviar senha, gerar hash antes de atualizar
     if (password) {
       updatedData.password = await bcrypt.hash(password, 10);
+    }
+
+    if (req.file) {
+      updatedData.image = req.file.filename; // salva apenas o nome do arquivo
     }
 
     const [updated] = await User.update(updatedData, { where: { id: req.params.id } });

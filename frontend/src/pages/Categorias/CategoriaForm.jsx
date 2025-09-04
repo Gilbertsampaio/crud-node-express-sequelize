@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api/api';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
-import { FaSave, FaTimes } from 'react-icons/fa';
+import { FaSave, FaTimes, FaPlus, FaEdit } from 'react-icons/fa';
 
 export default function CategoriaForm() {
   const [nome, setNome] = useState('');
@@ -55,7 +55,10 @@ export default function CategoriaForm() {
 
   return (
     <div className="category-form-container">
-      <h2>{id ? 'Editar Categoria' : 'Nova Categoria'}</h2>
+      <h2>
+        {id ? <FaEdit size={18} style={{ marginRight: '5px' }} /> : <FaPlus size={18} style={{ marginRight: '5px' }} />}
+        {id ? 'Editar Categoria' : 'Nova Categoria'}
+      </h2>
       {error && <p className="error">{error}</p>}
       <form onSubmit={handleSubmit}>
         <Input

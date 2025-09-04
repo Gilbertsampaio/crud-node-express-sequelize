@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import api from '../../api/api';
 import Table from '../../components/common/Table';
 import Button from '../../components/common/Button';
-import { FaPlus, FaEdit, FaTrash, FaHome } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaHome, FaListOl } from 'react-icons/fa';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import AlertModal from '../../components/common/AlertModal';
 import './CategoriaList.css';
@@ -98,7 +98,10 @@ export default function CategoriaList() {
   return (
     <div className="container">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-        <h2>Lista de Categorias</h2>
+        <h2>
+          <span style={{ marginRight: '8px' }}><FaListOl /></span>
+          Lista de Categorias
+        </h2>
         <div style={{ display: 'flex', gap: '10px' }}>
           <Button className="btn-primary" onClick={handleHome}>
             <FaHome />
@@ -110,7 +113,8 @@ export default function CategoriaList() {
       </div>
 
       {successMessage && <p className="success">{successMessage}</p>}
-
+      {error && <p className="error">{error}</p>}
+      
       <Table
         columns={columns}
         data={categorias}
