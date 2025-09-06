@@ -8,6 +8,8 @@ import ServicoForm from "../pages/Servico/ServicoForm";
 import CategoriaList from '../pages/Categorias/CategoriaList';
 import CategoriaForm from '../pages/Categorias/CategoriaForm';
 import Login from "../pages/Login";
+import ForgotPassword from '../pages/ForgotPassword';
+import ResetPassword from '../pages/ResetPassword';
 import PrivateRoute from "../components/PrivateRoute";
 import PrivateLayout from "../layouts/PrivateLayout";
 import PublicLayout from "../layouts/PublicLayout";
@@ -22,6 +24,22 @@ export default function AppRoutes() {
           element={
             <PublicLayout>
               <Login />
+            </PublicLayout>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <PublicLayout>
+              <ForgotPassword />
+            </PublicLayout>
+          }
+        />
+        <Route
+          path="/reset-password"
+          element={
+            <PublicLayout>
+              <ResetPassword />
             </PublicLayout>
           }
         />
@@ -92,7 +110,7 @@ export default function AppRoutes() {
           element={
             <PrivateRoute>
               <PrivateLayout>
-                <ServicoList tipo="geral"/>
+                <ServicoList tipo="geral" />
               </PrivateLayout>
             </PrivateRoute>
           }
@@ -122,7 +140,7 @@ export default function AppRoutes() {
           element={
             <PrivateRoute>
               <PrivateLayout>
-                <ServicoList tipo="meus"/>
+                <ServicoList tipo="meus" />
               </PrivateLayout>
             </PrivateRoute>
           }

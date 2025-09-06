@@ -19,6 +19,13 @@ body {
   min-height: 100vh;
 }
 
+.app-wrapper-public {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh
+}
+
 main {
   flex: 1;
 }

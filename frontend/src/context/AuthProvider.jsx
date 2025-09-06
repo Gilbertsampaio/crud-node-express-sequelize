@@ -4,12 +4,19 @@ import AuthContext from './AuthContext';
 
 export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // novo estado de loading
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) setUser(JSON.parse(storedUser));
-    setLoading(false); // terminou de carregar
+    const loadUser = async () => {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) setUser(JSON.parse(storedUser));
+
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      setLoading(false);
+    };
+
+    loadUser();
   }, []);
 
   const login = (userData) => {

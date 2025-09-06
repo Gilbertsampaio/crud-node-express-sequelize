@@ -74,6 +74,10 @@ export default function Login() {
         />
         <Button type="submit">Entrar</Button>
       </form>
+      {/* Link para "Esqueceu a senha?" */}
+      <div className="link-login">
+        <a onClick={() => navigate('/forgot-password')}>Esqueceu a senha?</a>
+      </div>
       <AlertModal
         show={showAlert}
         title="Atenção"

@@ -1,0 +1,25 @@
+.file-input-container {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0rem;
+}
+
+.file-input-label {
+  background-color: #007bff;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+  display: inline-block;
+}
+
+.file-input-label:hover {
+  background-color: #0056b3;
+}
+
+.error-message {
+  color: red;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}

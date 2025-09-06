@@ -10,13 +10,15 @@ const userRoutes = require('./routes/userRoutes');
 const serviceRoutes = require('./routes/serviceRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const loginRoutes = require('./routes/loginRoutes');
-// const authRequired = require('./middlewares/authRequired');
+const forgotPasswordRoutes = require('./routes/forgotPasswordRoutes');
+const resetPasswordRoutes = require('./routes/resetPasswordRoutes');
 
 app.use('/api/users', userRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/categories', categoryRoutes);
-// app.use('/categories', authRequired, categoryRoutes);
 app.use('/api/login', loginRoutes);
+app.use('/api/forgot-password', forgotPasswordRoutes);
+app.use('/api/reset-password', resetPasswordRoutes);
 app.use('/uploads', express.static('public/uploads'));
 
 module.exports = app;

@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const Category = require('../models/category');
-const Service = require('../models/service'); // importa o model Service
+const Service = require('../models/service');
+const authMiddleware = require('../authMiddleware/authMiddleware');
 
 // Criar categoria
-router.post('/', async (req, res) => {
+router.post('/', authMiddleware, async (req, res) => {
   try {
     const { name, description } = req.body;
     const category = await Category.create({ name, description });
@@ -18,7 +19,7 @@ router.post('/', async (req, res) => {
 });
 
 // Listar todas as categorias
-router.get('/', async (req, res) => {
+router.get('/', authMiddleware, async (req, res) => {
   try {
     const categories = await Category.findAll();
     res.json(categories);
@@ -28,7 +29,7 @@ router.get('/', async (req, res) => {
 });
 
 // Listar uma categoria específica
-router.get('/:id', async (req, res) => {
+router.get('/:id', authMiddleware, async (req, res) => {
   try {
     const category = await Category.findByPk(req.params.id);
     if (!category) return res.status(404).json({ message: 'Categoria não encontrada' });
@@ -39,7 +40,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Atualizar categoria
-router.put('/:id', async (req, res) => {
+router.put('/:id', authMiddleware, async (req, res) => {
   try {
     const { name, description } = req.body;
     const [updated] = await Category.update({ name, description }, { where: { id: req.params.id } });
@@ -57,7 +58,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Deletar categoria (com checagem de serviços vinculados)
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
 

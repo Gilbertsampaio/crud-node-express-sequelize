@@ -6,16 +6,17 @@ import './Layout.css';
 import Footer from '../../components/common/Footer';
 import ConfirmModal from "./ConfirmModal";
 import useAuth from "../../context/useAuth";
-import useAuthCheck from '../../hooks/useAuthCheck';
+import LoadingModal from '../../components/common/LoadingModal';
 
 export default function Layout({ children, menuPosition = 'top' }) {
-    useAuthCheck();
-    
     const [collapsed, setCollapsed] = useState(false);
     const location = useLocation();
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5173';
-    const { user, logout } = useAuth();
+    const { user, logout, loading } = useAuth();
     const [showModal, setShowModal] = useState(false);
+
+    // Enquanto carrega, mostra modal de loading
+    if (loading) return <LoadingModal show={true} />;
 
     const handleLogoutClick = () => setShowModal(true);
     const confirmLogout = () => {

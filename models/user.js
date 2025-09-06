@@ -29,6 +29,14 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: true, // nome do arquivo da imagem, pode ficar nulo
   },
+  resetToken: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  resetTokenExpiry: {
+    type: DataTypes.BIGINT,
+    allowNull: true,
+  },
 });
 
 // Hash da senha antes de criar

@@ -3,10 +3,10 @@ const router = express.Router();
 const Service = require('../models/service');
 const User = require('../models/user');
 const Category = require('../models/category'); 
-// const authMiddleware = require('../authMiddleware/authMiddleware');
+const authMiddleware = require('../authMiddleware/authMiddleware');
 
 // Criar serviço
-router.post('/', async (req, res) => {
+router.post('/', authMiddleware, async (req, res) => {
   try {
     const { userId, title, description, categoryId } = req.body; 
 
@@ -24,7 +24,7 @@ router.post('/', async (req, res) => {
 });
 
 // Listar todos os serviços
-router.get('/', async (req, res) => {
+router.get('/', authMiddleware, async (req, res) => {
   try {
     const services = await Service.findAll({ include: [User, Category] });
     res.json(services);
@@ -34,7 +34,7 @@ router.get('/', async (req, res) => {
 });
 
 // listar apenas meus serviços
-router.get("/my/:userId", async (req, res) => {
+router.get("/my/:userId", authMiddleware, async (req, res) => {
   try {
     const { userId } = req.params;
     const services = await Service.findAll({
@@ -48,7 +48,7 @@ router.get("/my/:userId", async (req, res) => {
 });
 
 // Listar serviços de um usuário específico
-router.get('/:userId/services', async (req, res) => {
+router.get('/:userId/services', authMiddleware, async (req, res) => {
   try {
     const services = await Service.findAll({
       where: { userId: req.params.userId },
@@ -61,7 +61,7 @@ router.get('/:userId/services', async (req, res) => {
 });
 
 // Listar um serviço específico
-router.get('/:id', async (req, res) => {
+router.get('/:id', authMiddleware, async (req, res) => {
   try {
     const service = await Service.findByPk(req.params.id, { include: [User, Category] }); // <-- incluir Category
     if (!service) return res.status(404).json({ message: 'Serviço não encontrado' });
@@ -72,7 +72,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Atualizar serviço
-router.put('/:id', async (req, res) => {
+router.put('/:id', authMiddleware, async (req, res) => {
   try {
     const { userId, categoryId } = req.body;
 
@@ -101,7 +101,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Deletar serviço
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     const deleted = await Service.destroy({ where: { id: req.params.id } });
     if (deleted) return res.json({ message: 'Serviço deletado com sucesso' });

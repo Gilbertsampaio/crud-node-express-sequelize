@@ -23,6 +23,7 @@ export default function useAuthCheck() {
     }
 
     const decoded = parseJwt(token);
+
     if (!decoded || Date.now() >= decoded.exp * 1000) {
       localStorage.removeItem('token');
       navigate('/login?sessionExpired=1');

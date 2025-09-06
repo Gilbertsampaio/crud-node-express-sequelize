@@ -1,8 +1,10 @@
+// src/pages/ServicoList.jsx
 import { useEffect, useState, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import api from '../../api/api';
 import Table from '../../components/common/Table';
 import Button from '../../components/common/Button';
+import LoadingModal from '../../components/common/LoadingModal';
 import { FaPlus, FaEdit, FaTrash, FaHome, FaCogs, FaUserCog } from 'react-icons/fa';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import useAuth from "../../context/useAuth";
@@ -16,12 +18,14 @@ export default function ServicoList({ tipo }) {
   const [successMessage, setSuccessMessage] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [selectedServiceId, setSelectedServiceId] = useState(null);
+  const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
   const location = useLocation();
   const navigate = useNavigate();
 
   const fetchServicos = useCallback(async () => {
+    setLoading(true);
     try {
       const endpoint = tipo === "meus" ? `/services/my/${user.id}` : "/services";
       const [resServicos, resCategorias, resUsuarios] = await Promise.all([
@@ -34,7 +38,13 @@ export default function ServicoList({ tipo }) {
       setUsuarios(resUsuarios.data);
     } catch (err) {
       console.error(err);
-      setError("Erro ao buscar dados: " + err.message);
+      if(err.response.data.error === 'logout') {
+        setError(err.response.data.error);
+      } else {
+        setError('Erro ao buscar dados: ' + err.message);
+      }
+    } finally {
+      setTimeout(() => setLoading(false), 0); // delay de 2s
     }
   }, [tipo, user.id]);
 
@@ -67,6 +77,7 @@ export default function ServicoList({ tipo }) {
   };
 
   const confirmDelete = async () => {
+    setLoading(true);
     try {
       await api.delete(`/services/${selectedServiceId}`);
       setSuccessMessage('Serviço excluído com sucesso!');
@@ -75,6 +86,7 @@ export default function ServicoList({ tipo }) {
       console.error(err);
       setError('Erro ao excluir serviço: ' + err.message);
     } finally {
+      setTimeout(() => setLoading(false), 0);
       setShowModal(false);
       setSelectedServiceId(null);
     }
@@ -110,27 +122,17 @@ export default function ServicoList({ tipo }) {
 
   const data = servicos.map(s => ({
     id: s.id,
-    title: (
-      <span style={{ whiteSpace: "nowrap"}}>
-        {s.title}
-      </span>
-    ),
+    title: <span style={{ whiteSpace: "nowrap"}}>{s.title}</span>,
     description: s.description,
-    category: (
-      <span style={{ whiteSpace: "nowrap" }}>
-        {getCategoryName(s.categoryId)}
-      </span>
-    ),
-    userName: (
-      <span style={{ whiteSpace: "nowrap" }}>
-        {getUserName(s.userId)}
-      </span>
-    ),
+    category: <span style={{ whiteSpace: "nowrap" }}>{getCategoryName(s.categoryId)}</span>,
+    userName: <span style={{ whiteSpace: "nowrap" }}>{getUserName(s.userId)}</span>,
     actions: s
   }));
 
   return (
     <div className="container">
+      <LoadingModal show={loading} /> {/* Modal de loading acima do conteúdo */}
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
         <h2>
           <span style={{ marginRight: '8px' }}>{tipo === "meus" ? <FaUserCog /> : <FaCogs />}</span>
@@ -147,7 +149,7 @@ export default function ServicoList({ tipo }) {
       </div>
 
       {successMessage && <p className="success">{successMessage}</p>}
-      {error && <p className="error">{error}</p>}
+      {error && error !== 'logout' && <p className="error">{error}</p>}
 
       <Table columns={columns} data={data} emptyMessage="Nenhum registro encontrado." />
 

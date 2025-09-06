@@ -8,9 +8,10 @@ import './UsuarioList.css';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import ImageModal from '../../components/common/ImageModal';
 import AuthContext from '../../context/AuthContext';
+import LoadingModal from "../../components/common/LoadingModal";
 
 export default function UsuarioList() {
-  const { user: currentUser, loading } = useContext(AuthContext); // pega o usuário logado
+  const { user: currentUser } = useContext(AuthContext);
   const [usuarios, setUsuarios] = useState([]);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -20,16 +21,24 @@ export default function UsuarioList() {
   const openImageModal = (imageUrl) => setSelectedImage(imageUrl);
   const closeImageModal = () => setSelectedImage(null);
 
+  const [loading, setLoading] = useState(true);
+
   const location = useLocation();
   const navigate = useNavigate();
 
   const fetchUsuarios = async () => {
     try {
+      setLoading(true);
       const resUsuarios = await api.get('/users');
       setUsuarios(resUsuarios.data);
     } catch (err) {
-      console.error(err);
-      setError('Erro ao buscar dados: ' + err.message);
+      if(err.response.data.error === 'logout') {
+        setError(err.response.data.error);
+      } else {
+        setError('Erro ao buscar dados: ' + err.message);
+      }
+    } finally {
+      setTimeout(() => setLoading(false), 0);
     }
   };
 
@@ -78,7 +87,7 @@ export default function UsuarioList() {
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5173';
 
-  if (loading) return <p>Carregando...</p>; // espera o carregamento do contexto
+  const avatarUrl = "/images/avatar.png";
 
   const columns = [
     { key: 'id', label: 'ID' },
@@ -95,7 +104,13 @@ export default function UsuarioList() {
             onError={(e) => { e.currentTarget.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50"><rect width="100%" height="100%" fill="%23eee"/></svg>'; }}
           />
         ) : (
-          <span>Sem foto</span>
+          <img
+            src={avatarUrl}
+            alt="Avatar do usuário"
+            className="user-avatar"
+            style={{ width: 50, height: 50, borderRadius: '50%', objectFit: 'cover', cursor: 'zoom-in' }}
+            onClick={() => openImageModal(avatarUrl)}
+          />
         )
       )
     },
@@ -138,7 +153,7 @@ export default function UsuarioList() {
       </div>
 
       {successMessage && <p className="success">{successMessage}</p>}
-      {error && <p className="error">{error}</p>}
+      {error && error !== 'logout' && <p className="error">{error}</p>}
 
       <Table columns={columns} data={usuarios} emptyMessage="Nenhum registro encontrado." />
 
@@ -155,6 +170,10 @@ export default function UsuarioList() {
         imageUrl={selectedImage}
         onClose={closeImageModal}
       />
+
+      {loading && (
+        <LoadingModal show={loading} />
+      )}
     </div>
   );
 

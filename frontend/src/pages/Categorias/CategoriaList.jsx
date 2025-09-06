@@ -6,6 +6,7 @@ import Button from '../../components/common/Button';
 import { FaPlus, FaEdit, FaTrash, FaHome, FaListOl } from 'react-icons/fa';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import AlertModal from '../../components/common/AlertModal';
+import LoadingModal from '../../components/common/LoadingModal';
 import './CategoriaList.css';
 
 export default function CategoriaList() {
@@ -14,20 +15,27 @@ export default function CategoriaList() {
   const [successMessage, setSuccessMessage] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
-
   const [alertMessage, setAlertMessage] = useState('');
   const [showAlert, setShowAlert] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const location = useLocation();
   const navigate = useNavigate();
 
   const fetchCategorias = async () => {
+    setLoading(true);
     try {
       const res = await api.get('/categories');
       setCategorias(res.data);
     } catch (err) {
       console.error(err);
-      setError('Erro ao buscar categorias: ' + (err.message || ''));
+      if(err.response.data.error === 'logout') {
+        setError(err.response.data.error);
+      } else {
+        setError('Erro ao buscar dados: ' + err.message);
+      }
+    } finally {
+      setTimeout(() => setLoading(false), 0); // delay de 2 segundos
     }
   };
 
@@ -50,22 +58,20 @@ export default function CategoriaList() {
   };
 
   const confirmDelete = async () => {
+    setLoading(true);
     try {
       await api.delete(`/categories/${selectedId}`);
       setSuccessMessage('Categoria excluída com sucesso!');
       fetchCategorias();
     } catch (err) {
       console.error(err);
-
-      // Aqui exibimos o modal de alerta em vez da mensagem na tela
-      const message =
-        err.response?.data?.message ||
-        'Não foi possível excluir a categoria.';
+      const message = err.response?.data?.message || 'Não foi possível excluir a categoria.';
       setAlertMessage(message);
       setShowAlert(true);
     } finally {
       setShowModal(false);
       setSelectedId(null);
+      setTimeout(() => setLoading(false), 0); // delay de 2 segundos
     }
   };
 
@@ -97,6 +103,8 @@ export default function CategoriaList() {
 
   return (
     <div className="container">
+      <LoadingModal show={loading} /> {/* modal de loading */}
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
         <h2>
           <span style={{ marginRight: '8px' }}><FaListOl /></span>
@@ -113,8 +121,8 @@ export default function CategoriaList() {
       </div>
 
       {successMessage && <p className="success">{successMessage}</p>}
-      {error && <p className="error">{error}</p>}
-      
+      {error && error !== 'logout' && <p className="error">{error}</p>}
+
       <Table
         columns={columns}
         data={categorias}
