@@ -11,7 +11,8 @@ export default function UsuarioViewPage() {
     const { id } = useParams();
     const navigate = useNavigate();
     const [usuario, setUsuario] = useState(null);
-    const [ setError] = useState("");
+    const [error, setError] = useState('');
+    // const [successMessage, setSuccessMessage] = useState('');
     const [loading, setLoading] = useState(true);
 
     const handleEdit = () => navigate(id ? `/usuarios/editar/${id}` : `/perfil/editar`);
@@ -23,9 +24,14 @@ export default function UsuarioViewPage() {
                 const endpoint = id ? `/users/${id}` : `/users/me/`;
                 const res = await api.get(endpoint);
                 setUsuario(res.data);
+                // setSuccessMessage('Dados do Usuário exibidos com sucesso!');
             } catch (err) {
                 console.error(err);
-                setError("Erro ao buscar usuário: " + (err.response?.data?.message || err.message));
+                if (err.response.data.error === 'logout') {
+                    setError(err.response.data.error);
+                } else {
+                    setError("Erro ao buscar dados do usuário: " + (err.response?.data?.message || err.message));
+                }
             } finally {
                 setLoading(false);
             }
@@ -33,10 +39,6 @@ export default function UsuarioViewPage() {
 
         fetchUsuario();
     }, [id]);
-
-    if (loading) return <LoadingModal show={loading} />;
-
-    // if (error) return <p className="error">{error}</p>;
 
     return (
         <div className="container">
@@ -52,13 +54,20 @@ export default function UsuarioViewPage() {
                 </div>
             </div>
 
+            {/* {successMessage && <p className="success">{successMessage}</p>} */}
+            {error && error !== 'logout' && <p className="error">{error}</p>}
+
             <div className="card-container">
                 <div className="card">
                     <FaUsers size={40} />
-                    <h3>Nome: <span>{usuario.name}</span></h3>
-                    <p>Email: <span>{usuario.email}</span></p>
+                    <h3>Nome: <span>{usuario?.name ? usuario?.name : 'Indisponível'}</span></h3>
+                    <p>Email: <span>{usuario?.email ? usuario?.email : 'Indisponível'}</span></p>
                 </div>
             </div>
+
+            {loading && (
+                <LoadingModal show={loading} />
+            )}
         </div>
     );
 }
