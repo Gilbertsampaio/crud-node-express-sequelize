@@ -64,7 +64,7 @@ describe("API Users", () => {
       .send({ email: "semnome@exemplo.com", password: "123456" });
 
     expect(res.statusCode).toBe(400);
-    expect(res.body.errors).toContain("O nome é obrigatório");
+    expect(res.body.error).toContain("Nome é obrigatório.");
   });
 
   it("não deve criar usuário sem email", async () => {
@@ -73,7 +73,7 @@ describe("API Users", () => {
       .send({ name: "Sem Email", password: "123456" });
 
     expect(res.statusCode).toBe(400);
-    expect(res.body.errors).toContain("O email é obrigatório");
+    expect(res.body.error).toContain("E-mail é obrigatório.");
   });
 
   it("não deve criar usuário com email inválido", async () => {

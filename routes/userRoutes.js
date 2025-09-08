@@ -24,8 +24,12 @@ router.post('/', upload.single('image'), authMiddleware, async (req, res) => {
   try {
     const { name, email } = req.body;
 
-    if (!name || !email) {
-      return res.status(400).json({ error: 'Nome e email são obrigatórios.' });
+    if (!name) {
+      return res.status(400).json({ error: 'Nome é obrigatório.' });
+    }
+
+    if (!email) {
+      return res.status(400).json({ error: 'E-mail é obrigatório.' });
     }
 
     const defaultPassword = '123456';
@@ -38,7 +42,7 @@ router.post('/', upload.single('image'), authMiddleware, async (req, res) => {
     };
 
     if (req.file) {
-      newUserData.image = req.file.filename; // salva o nome do arquivo
+      newUserData.image = req.file.filename;
     }
 
     const user = await User.create(newUserData);
