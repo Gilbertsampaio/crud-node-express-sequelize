@@ -175,7 +175,7 @@ export default function UsuarioForm() {
             error={error}
           />
           <FileInput
-            label="Imagem do Usuário"
+            label={"Imagem do Usuário"}
             titulo={fileInputTitle}
             onChange={handleFileChange}
             accept="image/*"

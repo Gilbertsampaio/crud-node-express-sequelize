@@ -12,6 +12,7 @@
   cursor: pointer;
   text-align: center;
   display: inline-block;
+  margin-bottom: 7px;
 }
 
 .file-input-label:hover {

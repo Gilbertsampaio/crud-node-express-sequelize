@@ -30,6 +30,7 @@ export default function Layout({ children, menuPosition = 'top' }) {
         { label: 'Usuários', path: '/usuarios', icon: <FaUsers size={14} /> },
         { label: 'Serviços', path: '/servicos', icon: <FaCogs size={14} /> },
         { label: 'Categorias', path: '/categorias', icon: <FaListOl size={14} /> },
+        { label: 'Novidades', path: '/news', icon: <FaListOl size={14} /> },
         { label: 'Perfil', path: '/perfil', icon: <FaUser size={14} /> },
         { label: 'Meus Serviços', path: '/meus-servicos', icon: <FaUserCog size={14} /> },
     ];

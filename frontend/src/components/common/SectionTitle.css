@@ -1,0 +1,55 @@
+.section-title {
+  display: flex;
+  align-items: center;
+  margin: 30px 0;
+  color: #1e1e2f;
+  font-weight: bold;
+  font-size: 18px;
+  background: url(https://www.cartoriovales.com.br/images/icons/dotted.png) repeat-x center;
+}
+
+.section-title::before,
+.section-title::after {
+  content: "";
+  flex: 1;
+  margin: 0 10px;
+}
+
+.section-title span {
+  white-space: nowrap;
+  padding: 0 10px;
+  background-color: #f4f6f9;
+}
+
+/* Centralizado (default) */
+.section-title.center {
+  justify-content: center;
+}
+
+/* Alinhado à esquerda */
+.section-title.left {
+  justify-content: flex-start;
+}
+
+.section-title.left::after {
+  flex: 1;
+}
+
+.section-title.left::before {
+  flex: 0;
+  margin: 0;
+}
+
+/* Alinhado à direita */
+.section-title.right {
+  justify-content: flex-end;
+}
+
+.section-title.right::before {
+  flex: 1;
+}
+
+.section-title.right::after {
+  flex: 0;
+  margin: 0;
+}

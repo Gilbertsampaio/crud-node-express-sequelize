@@ -7,6 +7,8 @@ import ServicoList from "../pages/Servico/ServicoList";
 import ServicoForm from "../pages/Servico/ServicoForm";
 import CategoriaList from '../pages/Categorias/CategoriaList';
 import CategoriaForm from '../pages/Categorias/CategoriaForm';
+import NewsList from "../pages/Novidades/NewsList";
+import NewsForm from "../pages/Novidades/NewsForm";
 import Login from "../pages/Login";
 import ForgotPassword from '../pages/ForgotPassword';
 import ResetPassword from '../pages/ResetPassword';
@@ -171,6 +173,36 @@ export default function AppRoutes() {
             <PrivateRoute>
               <PrivateLayout>
                 <CategoriaForm />
+              </PrivateLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/news"
+          element={
+            <PrivateRoute>
+              <PrivateLayout>
+                <NewsList tipo="geral" />
+              </PrivateLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/news/novo"
+          element={
+            <PrivateRoute>
+              <PrivateLayout>
+                <NewsForm />
+              </PrivateLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/news/editar/:id"
+          element={
+            <PrivateRoute>
+              <PrivateLayout>
+                <NewsForm />
               </PrivateLayout>
             </PrivateRoute>
           }

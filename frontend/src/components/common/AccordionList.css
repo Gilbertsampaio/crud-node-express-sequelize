@@ -1,0 +1,79 @@
+.accordion-list {
+    width: 100%;
+}
+
+.accordion-item {
+    margin-bottom: 5px;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.accordion-header {
+    width: 100%;
+    padding: 20px 12px;
+    display: flex;
+    align-items: center;
+    color: #64647c;
+    background: #2c2c4450;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 15px;
+    transition: background 0.2s ease;
+}
+
+.accordion-header:hover {
+    color: #fff;
+}
+
+.accordion-header .icon {
+    margin-right: 10px;
+    transition: transform 0.3s ease;
+}
+
+.accordion-item.open .accordion-header .icon {
+    transform: rotate(180deg);
+    /* ícone gira ao abrir */
+}
+
+.accordion-content {
+    margin-top: 0px;
+    max-height: 0;
+    overflow: hidden;
+    padding: 0 20px;
+    background: white;
+    border-left: 3px solid #ccc;
+    font-size: 14px;
+    color: #333;
+    transition: all 0.3s ease;
+}
+
+.accordion-item.open .accordion-content {
+    max-height: 200px;
+    padding: 20px 20px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.edit-link {
+    display: block;
+    margin-top: 5px;
+    color: #0056b3;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: zoom-in;
+  flex-shrink: 0;
+}

@@ -1,13 +1,20 @@
+import React from "react";
 import { useEffect, useState } from 'react';
 import { FaUsers, FaCogs, FaListOl } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import api from '../../api/api';
 import '../../assets/styles.css';
 
+import SectionTitle from '../../components/common/SectionTitle';
+import CarrosselServicos from '../../components/common/CarrosselServicos';
+import AccordionList from '../../components/common/AccordionList';
+
 export default function Home() {
   const [totalUsuarios, setTotalUsuarios] = useState(0);
   const [totalServicos, setTotalServicos] = useState(0);
   const [totalCategorias, setTotalCategorias] = useState(0);
+  const [servicos, setServicos] = useState([]);
+  const [usuarios, setUsuarios] = useState([]);
 
   useEffect(() => {
     const fetchTotals = async () => {
@@ -21,6 +28,8 @@ export default function Home() {
         setTotalUsuarios(resUsuarios.data.length);
         setTotalServicos(resServicos.data.length);
         setTotalCategorias(resCategorias.data.length);
+        setServicos(resServicos.data);
+        setUsuarios(resUsuarios.data);
       } catch (err) {
         console.error('Erro ao buscar totais:', err);
       }
@@ -29,7 +38,8 @@ export default function Home() {
     fetchTotals();
   }, []);
 
-  const formatBadge = (count) => count === 0 ? 'Nenhum registro' : `${count} ${count === 1 ? 'registro' : 'registros'}`;
+  const formatBadge = (count) =>
+    count === 0 ? 'Nenhum registro' : `${count} ${count === 1 ? 'registro' : 'registros'}`;
 
   return (
     <div className="container">
@@ -58,6 +68,22 @@ export default function Home() {
           <p>Gerencie as categorias de serviços disponíveis.</p>
         </Link>
       </div>
+
+      {/* Carrossel de serviços */}
+      {servicos.length > 0 && (
+        <>
+          <SectionTitle align="center" text="Serviços em destaque" />
+          <CarrosselServicos servicos={servicos} autoScrollTime={3000} infinite={true}/>
+        </>
+      )}
+
+      {/* Usuários */}
+      {usuarios.length > 0 && (
+        <>
+          <SectionTitle align="center" text="Serviços em destaque" />
+          <AccordionList items={usuarios} />
+        </>
+      )}
     </div>
   );
 }

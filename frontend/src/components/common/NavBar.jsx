@@ -48,6 +48,7 @@ export default function NavBar() {
     { label: 'Usuários', path: '/usuarios', icon: <FaUsers size={14} /> },
     { label: 'Serviços', path: '/servicos', icon: <FaCogs size={14} /> },
     { label: 'Categorias', path: '/categorias', icon: <FaListOl size={14} /> },
+    { label: 'Novidades', path: '/news', icon: <FaListOl size={14} /> },
   ];
 
   return (

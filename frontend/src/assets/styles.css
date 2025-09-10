@@ -235,7 +235,7 @@ option {
   border: 1px solid #f5c6cb;
   padding: 10px 15px;
   border-radius: 6px;
-  margin: 10px 0;
+  /* margin: 10px 0; */
   font-size: 0.95rem;
 }
 
@@ -323,4 +323,32 @@ button.action {
 
 .footer p {
   margin: 5px 0;
+}
+
+/* src/components/common/Form.css */
+
+/* Estilo base para textarea */
+textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  resize: vertical;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+}
+
+/* Estado de erro */
+textarea.error {
+  border-color: red;
+}
+
+/* Mensagem de erro */
+.error-message {
+  color: red;
+  font-size: 12px;
+  margin-top: 2px;
+  display: block;
 }
