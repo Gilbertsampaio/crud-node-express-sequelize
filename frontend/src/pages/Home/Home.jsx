@@ -8,6 +8,7 @@ import '../../assets/styles.css';
 import SectionTitle from '../../components/common/SectionTitle';
 import CarrosselServicos from '../../components/common/CarrosselServicos';
 import AccordionList from '../../components/common/AccordionList';
+import UltimasNovidades from '../../components/common/UltimasNovidades';
 
 export default function Home() {
   const [totalUsuarios, setTotalUsuarios] = useState(0);
@@ -33,6 +34,7 @@ export default function Home() {
         setTotalNovidades(resNovidades.data.length);
         setServicos(resServicos.data);
         setUsuarios(resUsuarios.data);
+
       } catch (err) {
         console.error('Erro ao buscar totais:', err);
       }
@@ -92,6 +94,14 @@ export default function Home() {
         <>
           <SectionTitle align="center" text="Usuários do Sistema" />
           <AccordionList items={usuarios} />
+        </>
+      )}
+
+      {/* Últimas Novidades */}
+      {totalNovidades > 0 && (
+        <>
+          <SectionTitle align="center" text="Últimas Novidades" />
+          <UltimasNovidades />
         </>
       )}
     </div>
