@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
+import { limitarTexto } from "../../utils/helpers";
 import './FileInput.css';
 
 const FileInput = ({ titulo = "Escolher arquivo", label, onChange, accept = "*", error, reset, maxLength = 40 }) => {
@@ -12,11 +13,7 @@ const FileInput = ({ titulo = "Escolher arquivo", label, onChange, accept = "*",
   const handleChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      let name = file.name;
-      if (name.length > maxLength) {
-        const ext = name.includes('.') ? name.slice(name.lastIndexOf('.')) : '';
-        name = name.slice(0, maxLength - 3 - ext.length) + '...' + ext;
-      }
+      let name = limitarTexto(file.name, maxLength, true);
       setFileName(name);
       if (onChange) onChange(file);
     } else {

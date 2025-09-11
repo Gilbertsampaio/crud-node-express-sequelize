@@ -43,7 +43,7 @@
 
 .novidade-imagem {
     width: 750px;
-    max-height: 300px;
+    max-height: 400px;
     object-fit: cover;
     border-radius: 10px;
     margin-bottom: 15px;
@@ -64,9 +64,37 @@
 }
 
 .novidade-descricao {
-    font-size: 16px;
-    line-height: 1.5;
-    color: #444;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #444;
+  height: 100px;
+  overflow-y: auto;
+
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #bbb transparent;
+}
+
+/* Chrome, Edge e Safari */
+.novidade-descricao::-webkit-scrollbar {
+  width: 6px;
+  height: 6px; /* evita barra horizontal grossa */
+}
+
+.novidade-descricao::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.novidade-descricao::-webkit-scrollbar-thumb {
+  background-color: #bbb;
+  border-radius: 4px;
+}
+
+/* Remove as setas (bot?es) definitivamente */
+.novidade-descricao::-webkit-scrollbar-button {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
 }
 
 /* Animação */

@@ -5,7 +5,7 @@ import ImageModal from "../../components/common/ImageModal";
 import Tooltip from "../../components/common/Tooltip";
 import "./UltimasNovidades.css"; // crie um css para estilizar os cards
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5173";
-import { formatarData } from "../../utils/helpers";
+import { formatarData, limitarTexto } from "../../utils/helpers";
 import NovidadeModal from "../../components/common/NovidadeModal";
 
 const IMAGEM_PADRAO = "/images/news.png"; // placeholder se não houver imagem
@@ -113,7 +113,7 @@ export default function UltimasNovidades() {
               )}
             </div>
             <h4>{news.title}</h4>
-            <p>{news.description}</p>
+            <p>{limitarTexto(news.description, 60)}</p>
           </div>
         ))}
       </div>
