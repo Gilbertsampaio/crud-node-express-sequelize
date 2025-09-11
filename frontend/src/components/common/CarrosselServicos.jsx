@@ -3,6 +3,7 @@ import { FaChevronLeft, FaChevronRight, FaPaintBrush, FaServer, FaCogs, FaUser }
 import api from "../../api/api"; // ajuste o path se precisar
 import "./CarrosselServicos.css";
 import Tooltip from './Tooltip';
+import ImageModal from "../../components/common/ImageModal";
 
 const IMAGEM_PADRAO = "/images/servico.png"; // pode acessar direto do public
 
@@ -16,24 +17,26 @@ export default function CarrosselServicos({
     const [categorias, setCategorias] = useState([]);
     const [usuarios, setUsuarios] = useState([]);
     const [error, setError] = useState('');
+    const [selectedImage, setSelectedImage] = useState(null);
+    const closeImageModal = () => setSelectedImage(null);
 
     const fetchDados = useCallback(async () => {
-    try {
-      const [resCategorias, resUsuarios] = await Promise.all([
-        api.get("/categories"),
-        api.get("/users")
-      ]);
-      setCategorias(resCategorias.data);
-      setUsuarios(resUsuarios.data);
-    } catch (err) {
-      console.error(err);
-      if(err.response.data.error === 'logout') {
-        setError(err.response.data.error);
-      } else {
-        setError('Erro ao buscar dados: ' + err.message);
-      }
-    } 
-  }, []);
+        try {
+            const [resCategorias, resUsuarios] = await Promise.all([
+                api.get("/categories"),
+                api.get("/users")
+            ]);
+            setCategorias(resCategorias.data);
+            setUsuarios(resUsuarios.data);
+        } catch (err) {
+            console.error(err);
+            if (err.response.data.error === 'logout') {
+                setError(err.response.data.error);
+            } else {
+                setError('Erro ao buscar dados: ' + err.message);
+            }
+        }
+    }, []);
 
     useEffect(() => { fetchDados(); }, [fetchDados]);
 
@@ -96,6 +99,19 @@ export default function CarrosselServicos({
         return user ? user.name : "Usuário não encontrado";
     };
 
+    const openImageModalSafe = (imagePath) => {
+        if (!imagePath) {
+
+            setSelectedImage(IMAGEM_PADRAO);
+            return;
+        }
+
+        const img = new Image();
+        img.src = imagePath;
+        img.onload = () => setSelectedImage(imagePath);
+        img.onerror = () => setSelectedImage(IMAGEM_PADRAO);
+    };
+
     return (
         <div
             className="carousel-wrapper"
@@ -116,6 +132,10 @@ export default function CarrosselServicos({
                                 src={servico.image || IMAGEM_PADRAO}
                                 alt={servico.title}
                                 className="carousel-image"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    openImageModalSafe(servico.image ? servico.image : null);
+                                }}
                             />
                             {servico.userId && (
                                 <span className="badge-icon-user">
@@ -141,6 +161,13 @@ export default function CarrosselServicos({
             <button className="carousel-btn right" onClick={() => scroll("right")}>
                 <FaChevronRight />
             </button>
+
+            {/* Modal para imagem */}
+            <ImageModal
+                show={!!selectedImage}
+                imageUrl={selectedImage}
+                onClose={closeImageModal}
+            />
         </div>
     );
 }

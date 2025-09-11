@@ -85,7 +85,7 @@ export default function Home() {
       {servicos.length > 0 && (
         <>
           <SectionTitle align="center" text="Serviços em destaque" />
-          <CarrosselServicos servicos={servicos} autoScrollTime={3000} infinite={true}/>
+          <CarrosselServicos servicos={servicos} autoScrollTime={0} infinite={false}/>
         </>
       )}
 

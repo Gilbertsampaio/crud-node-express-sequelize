@@ -1,13 +1,12 @@
 .carousel-wrapper {
     position: relative;
     width: 100%;
-    overflow: hidden;
 }
 
 .carousel {
     display: flex;
     gap: 16px;
-    overflow-x: hidden;
+    overflow: hidden;
     /* esconde a barra */
     scroll-behavior: smooth;
     padding: 10px 0;
@@ -25,6 +24,7 @@
     flex-direction: column;
     align-items: center;
     text-align: center;
+    gap: 10px;
 }
 
 .carousel-item:hover {
@@ -35,8 +35,15 @@
     width: 100%;
     height: 200px;
     object-fit: cover;
-    border-radius: 6px;
-    margin-bottom: 8px;
+    transition: all .3s ease;
+    opacity: 0.5;
+    cursor: zoom-in;
+}
+
+.carousel-image:hover {
+    scale: 1.3;
+    transition: all .3s ease;
+    opacity: 1;
 }
 
 .carousel-btn {
@@ -69,6 +76,8 @@
 .image-wrapper {
   position: relative;
   width: 100%;
+  overflow: hidden;
+  border-radius: 6px;
 }
 
 .badge-icon {

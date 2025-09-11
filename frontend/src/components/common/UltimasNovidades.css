@@ -28,11 +28,13 @@
     object-fit: cover;
     border-radius: 8px;
     transition: all .3s ease;
+    opacity: 0.5;
 }
 
 .ultimas-novidades-container .novidade-image:hover {
     scale: 1.3;
     transition: all .3s ease;
+    opacity: 1;
 }
 
 .ultimas-novidades-container .badge-icon,

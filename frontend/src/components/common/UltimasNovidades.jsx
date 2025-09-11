@@ -8,7 +8,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5173";
 import { formatarData, limitarTexto } from "../../utils/helpers";
 import NovidadeModal from "../../components/common/NovidadeModal";
 
-const IMAGEM_PADRAO = "/images/news.png"; // placeholder se não houver imagem
+const IMAGEM_PADRAO = "/images/news.png";
 
 export default function UltimasNovidades() {
   const [novidades, setNovidades] = useState([]);
@@ -18,7 +18,6 @@ export default function UltimasNovidades() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedNews, setSelectedNews] = useState(null); // novidade clicada
 
-  const openImageModal = (imageUrl) => setSelectedImage(imageUrl);
   const closeImageModal = () => setSelectedImage(null);
 
   const openNovidadeModal = (news) => setSelectedNews(news);
@@ -65,6 +64,19 @@ export default function UltimasNovidades() {
     return cat ? cat.name : "Categoria não definida";
   };
 
+  const openImageModal = (imagePath) => {
+    if (!imagePath) {
+
+      setSelectedImage(IMAGEM_PADRAO);
+      return;
+    }
+
+    const img = new Image();
+    img.src = imagePath;
+    img.onload = () => setSelectedImage(imagePath);
+    img.onerror = () => setSelectedImage(IMAGEM_PADRAO);
+  };
+
   return (
     <div className="ultimas-novidades-container">
       {error && <p className="error">{error}</p>}
@@ -74,20 +86,19 @@ export default function UltimasNovidades() {
           <div
             key={news.id}
             className="novidade-card"
-            onClick={() => openNovidadeModal(news)} // abre modal da novidade
+            onClick={() => openNovidadeModal(news)}
           >
             <div className="image-wrapper">
               <img
-                src={
-                  news.image
-                    ? API_URL + "/uploads/" + news.image
-                    : IMAGEM_PADRAO
-                }
+                src={news.image ? API_URL + "/uploads/" + news.image : IMAGEM_PADRAO}
                 alt={news.title}
                 className="novidade-image img-preview"
                 onClick={(e) => {
-                  e.stopPropagation(); // impede abrir o modal da novidade
-                  openImageModal(API_URL + "/uploads/" + news.image);
+                  e.stopPropagation();
+                  openImageModal(news.image ? API_URL + "/uploads/" + news.image : null);
+                }}
+                onError={(e) => {
+                  e.target.src = IMAGEM_PADRAO;
                 }}
               />
               {news.postDate && (
