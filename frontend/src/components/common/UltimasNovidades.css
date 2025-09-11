@@ -64,6 +64,10 @@
     right: 8px;
 }
 
+.ultimas-novidades-container .novidade-card {
+    cursor: pointer;
+}
+
 .ultimas-novidades-container .novidade-card h4 {
     margin: 10px 0 5px;
 }
