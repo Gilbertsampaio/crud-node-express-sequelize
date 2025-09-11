@@ -32,6 +32,10 @@ router.post('/', upload.single('image'), authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'E-mail é obrigatório.' });
     }
 
+    if (!req.file) {
+      return res.status(400).json({ error: 'A imagem do usuário é obrigatória.' });
+    }
+
     const defaultPassword = '123456';
     const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
@@ -109,7 +113,11 @@ router.put('/:id', upload.single('image'), authMiddleware, async (req, res) => {
     if (req.file) {
       if (user.image) {
         const oldFilePath = path.join(__dirname, '..', 'frontend/public/uploads', user.image);
-        fs.unlink(oldFilePath, (err) => { if (err) console.error(err); });
+        if (fs.existsSync(oldFilePath)) {
+          fs.unlink(oldFilePath, (err) => {
+            if (err) console.error(err);
+          });
+        }
       }
       updatedData.image = req.file.filename;
     }

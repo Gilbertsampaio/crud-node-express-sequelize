@@ -13,10 +13,21 @@
   text-align: center;
   display: inline-block;
   margin-bottom: 7px;
+  transition: all .3s ease;
 }
 
 .file-input-label:hover {
   background-color: #0056b3;
+  transition: all .3s ease;
+}
+
+.file-input-label.error {
+  background-color: #de1010;
+}
+
+.file-input-label.error:hover {
+  background-color: #950a0a;
+  transition: all .3s ease;
 }
 
 .error-message {

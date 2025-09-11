@@ -41,7 +41,7 @@ const FileInput = ({ titulo = "Escolher arquivo", label, onChange, accept = "*",
     <div className="input-group">
       {label && <label>{label}</label>}
       <div className="file-input-container">
-        <label className="file-input-label" onClick={handleClick}>
+        <label className={`file-input-label ${error ? "error" : ""}`} onClick={handleClick}>
           {fileName}
         </label>
         <input

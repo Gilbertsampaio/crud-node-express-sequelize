@@ -1,6 +1,6 @@
 import React from "react";
 import { useEffect, useState } from 'react';
-import { FaUsers, FaCogs, FaListOl } from 'react-icons/fa';
+import { FaUsers, FaCogs, FaListOl, FaNewspaper } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import api from '../../api/api';
 import '../../assets/styles.css';
@@ -13,21 +13,24 @@ export default function Home() {
   const [totalUsuarios, setTotalUsuarios] = useState(0);
   const [totalServicos, setTotalServicos] = useState(0);
   const [totalCategorias, setTotalCategorias] = useState(0);
+  const [totalNovidades, setTotalNovidades] = useState(0);
   const [servicos, setServicos] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
 
   useEffect(() => {
     const fetchTotals = async () => {
       try {
-        const [resUsuarios, resServicos, resCategorias] = await Promise.all([
+        const [resUsuarios, resServicos, resCategorias, resNovidades] = await Promise.all([
           api.get('/users'),
           api.get('/services'),
-          api.get('/categories')
+          api.get('/categories'),
+          api.get('/news')
         ]);
 
         setTotalUsuarios(resUsuarios.data.length);
         setTotalServicos(resServicos.data.length);
         setTotalCategorias(resCategorias.data.length);
+        setTotalNovidades(resNovidades.data.length);
         setServicos(resServicos.data);
         setUsuarios(resUsuarios.data);
       } catch (err) {
@@ -67,6 +70,13 @@ export default function Home() {
           <span className="badge">{formatBadge(totalCategorias)}</span>
           <p>Gerencie as categorias de serviços disponíveis.</p>
         </Link>
+
+        <Link to="/news" className="card">
+          <FaNewspaper size={40} />
+          <h3>Novidades</h3>
+          <span className="badge">{formatBadge(totalNovidades)}</span>
+          <p>Gerencie as novidades disponíveis.</p>
+        </Link>
       </div>
 
       {/* Carrossel de serviços */}
@@ -80,7 +90,7 @@ export default function Home() {
       {/* Usuários */}
       {usuarios.length > 0 && (
         <>
-          <SectionTitle align="center" text="Serviços em destaque" />
+          <SectionTitle align="center" text="Usuários do Sistema" />
           <AccordionList items={usuarios} />
         </>
       )}

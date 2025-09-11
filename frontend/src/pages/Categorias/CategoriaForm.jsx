@@ -41,7 +41,7 @@ export default function CategoriaForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!nome.trim()) {
-      setError('Nome é obrigatório.');
+      setError('Todos os campos são obrigatórios.');
       return;
     }
 
@@ -81,29 +81,31 @@ export default function CategoriaForm() {
         {id ? 'Editar Categoria' : 'Nova Categoria'}
       </h2>
 
-      {error && error !== 'logout' && <p className="error">{error}</p>}
+      {error && error !== 'logout' && error !== 'Todos os campos são obrigatórios.' && <p className="error">{error}</p>}
 
       <form onSubmit={handleSubmit}>
-        <Input
-          label="Nome"
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
-          placeholder="Digite o nome da categoria"
-          error={error}
-        />
-        <Input
-          label="Descrição"
-          value={descricao}
-          onChange={(e) => setDescricao(e.target.value)}
-          placeholder="Digite a descrição (opcional)"
-          error={error}
-        />
-        <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+        <div className="form-row">
+          <Input
+            label="Nome"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            placeholder="Digite o nome da categoria"
+            error={error}
+          />
+          <Input
+            label="Descrição"
+            value={descricao}
+            onChange={(e) => setDescricao(e.target.value)}
+            placeholder="Digite a descrição (opcional)"
+            error={error}
+          />
+        </div>
+        <div style={{ display: 'flex', gap: '10px', marginTop: '0px', justifyContent: 'end' }}>
           <Button className="btn-danger" type="button" onClick={handleCancel}>
-            <FaTimes style={{ marginRight: 5 }} /> Cancelar
+            <FaTimes style={{ marginRight: '5px' }} /> Cancelar
           </Button>
           <Button type="submit">
-            <FaSave style={{ marginRight: 5 }} /> {id ? 'Atualizar' : 'Salvar'}
+            <FaSave style={{ marginRight: '5px' }} /> {id ? 'Atualizar' : 'Salvar'}
           </Button>
         </div>
       </form>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import NavBar from '../../components/common/NavBar';
-import { FaBars, FaSignOutAlt, FaUsers, FaCogs, FaListOl, FaHome, FaUser, FaUserCog } from 'react-icons/fa';
+import { FaBars, FaSignOutAlt, FaUsers, FaCogs, FaListOl, FaHome, FaUser, FaUserCog, FaNewspaper } from 'react-icons/fa';
 import './Layout.css';
 import Footer from '../../components/common/Footer';
 import ConfirmModal from "./ConfirmModal";
@@ -30,7 +30,7 @@ export default function Layout({ children, menuPosition = 'top' }) {
         { label: 'Usuários', path: '/usuarios', icon: <FaUsers size={14} /> },
         { label: 'Serviços', path: '/servicos', icon: <FaCogs size={14} /> },
         { label: 'Categorias', path: '/categorias', icon: <FaListOl size={14} /> },
-        { label: 'Novidades', path: '/news', icon: <FaListOl size={14} /> },
+        { label: 'Novidades', path: '/news', icon: <FaNewspaper size={14} /> },
         { label: 'Perfil', path: '/perfil', icon: <FaUser size={14} /> },
         { label: 'Meus Serviços', path: '/meus-servicos', icon: <FaUserCog size={14} /> },
     ];

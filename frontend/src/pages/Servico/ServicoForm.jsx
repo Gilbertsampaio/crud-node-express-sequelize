@@ -6,6 +6,8 @@ import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import LoadingModal from '../../components/common/LoadingModal';
 import { FaSave, FaTimes, FaPlus, FaEdit } from 'react-icons/fa';
+import Select from '../../components/common/Select';
+import Textarea from '../../components/common/Textarea';
 
 export default function ServicoForm() {
   const [title, setTitle] = useState('');
@@ -128,76 +130,48 @@ export default function ServicoForm() {
       </h2>
 
       <form onSubmit={handleSubmit}>
-        <Input
-          label="Título"
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-          placeholder="Digite o título do serviço"
-        />
+        <div className="form-row">
+          <Input
+            label="Título"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            placeholder="Digite o título do serviço"
+            error={error}
+          />
+          <Select
+            label="Categoria"
+            value={categoryId}
+            onChange={e => setCategoryId(e.target.value)}
+            options={categorias.map(c => ({ value: c.id, label: c.name }))}
+            error={error}
+          />
+        </div>
+        <div className="form-row mb-0">
+          <Select
+            label="Usuários"
+            value={userId}
+            onChange={e => setUserId(e.target.value)}
+            options={usuarios.map(u => ({ value: u.id, label: u.name }))}
+            error={error}
+          />
+        </div>
+        <div className="form-row mb-0">
+          <Textarea
+            label="Descrição"
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+            placeholder="Digite a descrição do serviço"
+            rows={4}
+            error={error}
+          />
+        </div>
 
-        <label>Descrição</label>
-        <textarea
-          value={description}
-          onChange={e => setDescription(e.target.value)}
-          placeholder="Digite a descrição"
-          rows="4"
-          style={{
-            width: '100%',
-            boxSizing: 'border-box',
-            padding: '10px',
-            margin: '10px 0',
-            borderRadius: '5px',
-            border: '1px solid #ccc',
-            resize: 'vertical'
-          }}
-        />
-
-        <label>Usuário</label>
-        <select
-          value={userId}
-          onChange={e => setUserId(e.target.value)}
-          style={{
-            width: '100%',
-            padding: '10px',
-            margin: '10px 0',
-            borderRadius: '5px',
-            border: '1px solid #ccc'
-          }}
-        >
-          <option value="">Selecione um usuário</option>
-          {usuarios.map(user => (
-            <option key={user.id} value={user.id}>{user.name}</option>
-          ))}
-        </select>
-
-        <label>Categoria</label>
-        <select
-          value={categoryId}
-          onChange={e => setCategoryId(e.target.value)}
-          style={{
-            width: '100%',
-            padding: '10px',
-            margin: '10px 0',
-            borderRadius: '5px',
-            border: '1px solid #ccc'
-          }}
-        >
-          <option value="">Selecione uma categoria</option>
-          {categorias.map(cat => (
-            <option key={cat.id} value={cat.id}>{cat.name}</option>
-          ))}
-        </select>
-
-        {error && error !== 'logout' && <p style={{ color: 'red' }}>{error}</p>}
-
-        <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', marginTop: '0px', justifyContent: 'end' }}>
           <Button className="btn-danger" type="button" onClick={handleCancel}>
-            <FaTimes style={{ marginRight: '5px' }} />
-            Cancelar
+            <FaTimes style={{ marginRight: '5px' }} /> Cancelar
           </Button>
           <Button type="submit">
-            <FaSave style={{ marginRight: '5px' }} />
-            {id ? 'Atualizar' : 'Salvar'}
+            <FaSave style={{ marginRight: '5px' }} /> {id ? 'Atualizar' : 'Salvar'}
           </Button>
         </div>
       </form>

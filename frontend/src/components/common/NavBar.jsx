@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../../context/useAuth";
 import "../../styles/NavBar.css";
 import ConfirmModal from "./ConfirmModal";
-import { FaSignOutAlt, FaUsers, FaCogs, FaListOl, FaHome, FaUser, FaUserCog } from "react-icons/fa";
+import { FaSignOutAlt, FaUsers, FaCogs, FaListOl, FaHome, FaUser, FaUserCog, FaNewspaper } from "react-icons/fa";
 
 export default function NavBar() {
   const { user, logout } = useAuth();
@@ -48,7 +48,7 @@ export default function NavBar() {
     { label: 'Usuários', path: '/usuarios', icon: <FaUsers size={14} /> },
     { label: 'Serviços', path: '/servicos', icon: <FaCogs size={14} /> },
     { label: 'Categorias', path: '/categorias', icon: <FaListOl size={14} /> },
-    { label: 'Novidades', path: '/news', icon: <FaListOl size={14} /> },
+    { label: 'Novidades', path: '/news', icon: <FaNewspaper size={14} /> },
   ];
 
   return (

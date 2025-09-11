@@ -91,7 +91,7 @@ export default function UsuarioForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!nome.trim() || !email.trim()) {
-      setError('Nome e email são obrigatórios.');
+      setError('Nome, email e imagem são obrigatórios.');
       return;
     }
 
@@ -145,7 +145,7 @@ export default function UsuarioForm() {
         {title}
       </h2>
 
-      {error && error !== 'logout' && <p className="error">{error}</p>}
+      {error && error !== 'logout' && error !== 'Nome, email e imagem são obrigatórios.' && <p className="error">{error}</p>}
 
       <form onSubmit={handleSubmit}>
         <div className="form-row">
@@ -172,7 +172,6 @@ export default function UsuarioForm() {
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
             placeholder={id || isPerfil ? 'Preencha apenas se quiser alterar a senha' : 'Digite a senha'}
-            error={error}
           />
           <FileInput
             label={"Imagem do Usuário"}

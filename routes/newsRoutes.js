@@ -2,13 +2,13 @@ const express = require('express');
 const router = express.Router();
 const News = require('../models/news');
 const User = require('../models/user');
-const Category = require('../models/category'); 
+const Category = require('../models/category');
 const authMiddleware = require('../authMiddleware/authMiddleware');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Configuração do Multer (mesma usada em usuários)
+// ConfiguraÃ§Ã£o do Multer (mesma usada em usuÃ¡rios)
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, 'frontend/public/uploads/');
@@ -26,14 +26,18 @@ router.post('/', upload.single('image'), authMiddleware, async (req, res) => {
     const { userId, title, description, categoryId, externalUrl } = req.body;
 
     if (!userId || !title || !description || !categoryId) {
-      return res.status(400).json({ error: 'Todos os campos obrigatórios devem ser preenchidos.' });
+      return res.status(400).json({ error: 'Todos os campos obrigatÃ³rios devem ser preenchidos.' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'A imagem da novidade Ã© obrigatÃ³ria.' });
     }
 
     const user = await User.findByPk(userId);
-    if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
+    if (!user) return res.status(404).json({ message: 'UsuÃ¡rio nÃ£o encontrado' });
 
     const category = await Category.findByPk(categoryId);
-    if (!category) return res.status(404).json({ message: 'Categoria não encontrada' });
+    if (!category) return res.status(404).json({ message: 'Categoria nÃ£o encontrada' });
 
     const newNews = {
       userId,
@@ -82,11 +86,11 @@ router.get('/my/:userId', authMiddleware, async (req, res) => {
   }
 });
 
-// Listar novidade específica
+// Listar novidade especÃ­fica
 router.get('/:id', authMiddleware, async (req, res) => {
   try {
     const newsItem = await News.findByPk(req.params.id, { include: [User, Category] });
-    if (!newsItem) return res.status(404).json({ message: 'Novidade não encontrada' });
+    if (!newsItem) return res.status(404).json({ message: 'Novidade nÃ£o encontrada' });
     res.json(newsItem);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -99,16 +103,20 @@ router.put('/:id', upload.single('image'), authMiddleware, async (req, res) => {
     const { userId, categoryId, title, description, externalUrl, removeImage } = req.body;
 
     const news = await News.findByPk(req.params.id);
-    if (!news) return res.status(404).json({ message: 'Novidade não encontrada' });
+    if (!news) return res.status(404).json({ message: 'Novidade nÃ£o encontrada' });
 
     if (userId) {
       const user = await User.findByPk(userId);
-      if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
+      if (!user) return res.status(404).json({ message: 'UsuÃ¡rio nÃ£o encontrado' });
     }
 
     if (categoryId) {
       const category = await Category.findByPk(categoryId);
-      if (!category) return res.status(404).json({ message: 'Categoria não encontrada' });
+      if (!category) return res.status(404).json({ message: 'Categoria nÃ£o encontrada' });
+    }
+
+    if (!req.file && !news.image) {
+      return res.status(400).json({ error: 'A imagem da novidade Ã© obrigatÃ³ria.' });
     }
 
     const updatedData = { title, description, categoryId, userId, externalUrl };
@@ -124,7 +132,11 @@ router.put('/:id', upload.single('image'), authMiddleware, async (req, res) => {
     if (req.file) {
       if (news.image) {
         const oldFilePath = path.join(__dirname, '..', 'frontend/public/uploads', news.image);
-        fs.unlink(oldFilePath, (err) => { if (err) console.error(err); });
+        if (fs.existsSync(oldFilePath)) {
+          fs.unlink(oldFilePath, (err) => {
+            if (err) console.error(err);
+          });
+        }
       }
       updatedData.image = req.file.filename;
     }
@@ -144,7 +156,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     const deleted = await News.destroy({ where: { id: req.params.id } });
     if (deleted) return res.json({ message: 'Novidade deletada com sucesso' });
-    return res.status(404).json({ message: 'Novidade não encontrada' });
+    return res.status(404).json({ message: 'Novidade nÃ£o encontrada' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -100,6 +100,11 @@ export default function NewsForm() {
       return;
     }
 
+    if ((!id && !image) || (id && !image && removeExistingImage && !preview)) {
+      setError('A imagem da novidade é obrigatória.');
+      return;
+    }
+
     setLoading(true);
     const formData = new FormData();
     formData.append('title', title);
@@ -135,7 +140,7 @@ export default function NewsForm() {
 
       <h2>{id ? <FaEdit /> : <FaPlus />} {id ? 'Editar Novidade' : 'Nova Novidade'}</h2>
 
-      {error && error !== 'logout' && <p className="error">{error}</p>}
+      {error && error !== 'logout' && error !== 'Todos os campos obrigatórios devem ser preenchidos.' && <p className="error">{error}</p>}
 
       <form onSubmit={handleSubmit}>
 
@@ -184,14 +189,16 @@ export default function NewsForm() {
                 onClick={() => openImageModal(preview)}
                 onError={(e) => { e.currentTarget.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50"><rect width="100%" height="100%" fill="%23eee"/></svg>'; }}
               />
-              <button
-                type="button"
-                className="remove-image-btn"
-                onClick={handleRemoveImage}
-                title="Remover imagem"
-              >
-                <FaTrash />
-              </button>
+              {!id && (
+                <button
+                  type="button"
+                  className="remove-image-btn"
+                  onClick={handleRemoveImage}
+                  title="Remover imagem"
+                >
+                  <FaTrash />
+                </button>
+              )}
             </div>
           </div>
         )}
