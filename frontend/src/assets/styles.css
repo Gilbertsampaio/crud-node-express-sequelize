@@ -337,6 +337,7 @@ textarea {
   border: 1px solid #ccc;
   resize: vertical;
   font-size: 1rem;
+  resize: none !important;
 }
 
 /* Estado de erro */

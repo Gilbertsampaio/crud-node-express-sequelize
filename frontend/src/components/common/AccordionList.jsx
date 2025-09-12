@@ -3,6 +3,8 @@ import { FaCheck, FaTimes } from "react-icons/fa";
 import "./AccordionList.css";
 import { useNavigate } from "react-router-dom";
 import ImageModal from '../../components/common/ImageModal';
+import LikeButton from "../../components/common/LikeButton";
+import CommentButton from "../../components/common/CommentButton";
 
 // const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5173';
 var API_URL = (typeof importMeta !== 'undefined' ? import.meta.env.VITE_API_URL : 'http://localhost:5173') || 'http://localhost:5173';
@@ -28,7 +30,7 @@ export default function AccordionList({ items }) {
                 const isOpen = openIndex === index;
                 return (
                     <div key={item.id} className={`accordion-item ${isOpen ? "open" : ""}`}>
-                        <button
+                        <div
                             className="accordion-header"
                             onClick={() => toggleItem(index)}
                         >
@@ -38,7 +40,17 @@ export default function AccordionList({ items }) {
                                 <FaCheck className="icon" />
                             )}
                             <span>{item.name}</span>
-                        </button>
+                            <LikeButton
+                                modulo="users"
+                                registroId={item.id}
+                                posicao="right"
+                            />
+                            <CommentButton
+                                modulo="users"
+                                registroId={item.id}
+                                posicao="right"
+                            />
+                        </div>
 
                         <div className="accordion-content">
                             {/* Avatar */}

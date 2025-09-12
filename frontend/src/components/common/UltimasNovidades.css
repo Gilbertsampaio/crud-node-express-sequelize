@@ -67,7 +67,7 @@
 }
 
 .ultimas-novidades-container .novidade-card {
-    cursor: pointer;
+    /* cursor: pointer; */
 }
 
 .ultimas-novidades-container .novidade-card h4 {
@@ -77,4 +77,5 @@
 .ultimas-novidades-container .novidade-card p {
     font-size: 0.9rem;
     color: #555;
+    margin-bottom: 15px;
 }

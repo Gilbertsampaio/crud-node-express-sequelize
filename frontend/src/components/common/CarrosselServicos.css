@@ -25,10 +25,15 @@
     align-items: center;
     text-align: center;
     gap: 10px;
+    position: relative;
+}
+
+.carousel-item p {
+    margin-bottom: 30px;
 }
 
 .carousel-item:hover {
-    transform: translateY(-5px);
+    /* transform: translateY(-5px); */
 }
 
 .carousel-image {

@@ -1,0 +1,25 @@
+/* src/components/common/LikeButton.css */
+.like-button {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  color: #555;
+  font-size: 14px;
+  z-index: 1;
+}
+
+.like-button.left {
+  bottom: 8px;
+  left: 8px;
+}
+
+.like-button.right {
+  bottom: 8px;
+  right: 8px;
+}
+
+.like-button .liked {
+  color: red;
+}

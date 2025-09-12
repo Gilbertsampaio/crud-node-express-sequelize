@@ -4,6 +4,8 @@ import api from "../../api/api"; // ajuste o path se precisar
 import "./CarrosselServicos.css";
 import Tooltip from './Tooltip';
 import ImageModal from "../../components/common/ImageModal";
+import LikeButton from "../../components/common/LikeButton";
+import CommentButton from "../../components/common/CommentButton";
 
 const IMAGEM_PADRAO = "/images/servico.png"; // pode acessar direto do public
 
@@ -154,6 +156,14 @@ export default function CarrosselServicos({
                         </div>
                         <h4>{servico.title}</h4>
                         <p>{servico.description}</p>
+                        <LikeButton
+                            modulo="services"
+                            registroId={servico.id}
+                        />
+                        <CommentButton
+                            modulo="services"
+                            registroId={servico.id}
+                        />
                     </div>
                 ))}
             </div>

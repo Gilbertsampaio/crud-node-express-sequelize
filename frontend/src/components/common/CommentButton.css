@@ -1,0 +1,29 @@
+.comment-button {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  color: #555;
+  font-size: 14px;
+  z-index: 1;
+  transition: color 0.2s ease;
+}
+
+.comment-button.left {
+  bottom: 8px;
+  left: 50px;
+}
+
+.comment-button.right {
+  bottom: 8px;
+  right: 50px;
+}
+
+.comment-button:hover {
+  color: #007bff;
+}
+
+.comment-button svg {
+  font-size: 18px;
+}

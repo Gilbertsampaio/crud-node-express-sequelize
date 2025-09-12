@@ -11,10 +11,11 @@ export default function Tooltip({ children, text }) {
     useLayoutEffect(() => {
         if (show && wrapperRef.current && tooltipRef.current) {
             const rect = wrapperRef.current.getBoundingClientRect();
+            const tooltipHeight = tooltipRef.current.offsetHeight;
             const tooltipWidth = tooltipRef.current.offsetWidth;
 
             setCoords({
-                top: rect.top + window.scrollY - 37,
+                top: rect.top + window.scrollY - tooltipHeight - 12,
                 left: rect.left + window.scrollX + rect.width / 2 - tooltipWidth / 2,
             });
         }

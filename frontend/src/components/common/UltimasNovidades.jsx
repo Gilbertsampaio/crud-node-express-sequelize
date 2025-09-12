@@ -7,6 +7,8 @@ import "./UltimasNovidades.css"; // crie um css para estilizar os cards
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5173";
 import { formatarData, limitarTexto } from "../../utils/helpers";
 import NovidadeModal from "../../components/common/NovidadeModal";
+import LikeButton from "../../components/common/LikeButton";
+import CommentButton from "../../components/common/CommentButton";
 
 const IMAGEM_PADRAO = "/images/news.png";
 
@@ -16,7 +18,7 @@ export default function UltimasNovidades() {
   const [categorias, setCategorias] = useState([]);
   const [error, setError] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
-  const [selectedNews, setSelectedNews] = useState(null); // novidade clicada
+  const [selectedNews, setSelectedNews] = useState(null);
 
   const closeImageModal = () => setSelectedImage(null);
 
@@ -86,7 +88,6 @@ export default function UltimasNovidades() {
           <div
             key={news.id}
             className="novidade-card"
-            onClick={() => openNovidadeModal(news)}
           >
             <div className="image-wrapper">
               <img
@@ -123,8 +124,18 @@ export default function UltimasNovidades() {
                 </span>
               )}
             </div>
-            <h4>{news.title}</h4>
-            <p>{limitarTexto(news.description, 60)}</p>
+            <span onClick={() => openNovidadeModal(news)}>
+              <h4>{news.title}</h4>
+              <p>{limitarTexto(news.description, 60)}</p>
+            </span>
+            <LikeButton
+              modulo="news"
+              registroId={news.id}
+            />
+            <CommentButton
+              modulo="news"
+              registroId={news.id}
+            />
           </div>
         ))}
       </div>
