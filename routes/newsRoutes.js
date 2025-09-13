@@ -1,8 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const News = require('../models/news');
-const User = require('../models/user');
-const Category = require('../models/category');
+const { User, News, Category } = require('../models/index');
 const authMiddleware = require('../authMiddleware/authMiddleware');
 const multer = require('multer');
 const path = require('path');

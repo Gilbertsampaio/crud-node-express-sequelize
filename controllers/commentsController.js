@@ -1,6 +1,5 @@
 // controllers/commentController.js
-const Comment = require("../models/Comment");
-const User = require("../models/User");
+const { Comment, User } = require('../models/index');
 
 exports.getTotalComments = async (req, res) => {
     try {
@@ -42,7 +41,7 @@ exports.createComment = async (req, res) => {
             content,
         });
 
-        res.status(201).json(comment);
+        res.status(200).json(comment);
     } catch (err) {
         res.status(500).json({ error: "Erro ao criar comentário" });
     }

@@ -1,7 +1,5 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
-const User = require('./user');
-const Category = require('./category');
 
 const News = sequelize.define(
   'News',
@@ -69,12 +67,5 @@ const News = sequelize.define(
     timestamps: true, // Sequelize usará createdAt e updatedAt
   }
 );
-
-// Relacionamentos
-News.belongsTo(User, { foreignKey: 'userId', onDelete: 'CASCADE' });
-User.hasMany(News, { foreignKey: 'userId' });
-
-News.belongsTo(Category, { foreignKey: 'categoryId' });
-Category.hasMany(News, { foreignKey: 'categoryId', onDelete: 'SET NULL' });
 
 module.exports = News;

@@ -1,7 +1,6 @@
 // models/Comment.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
-const User = require("./User");
 
 const Comment = sequelize.define(
   "Comment",
@@ -11,11 +10,11 @@ const Comment = sequelize.define(
       allowNull: false,
     },
     record_id: {
-      type: DataTypes.BIGINT.UNSIGNED,
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     user_id: {
-      type: DataTypes.BIGINT.UNSIGNED,
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     content: {
@@ -30,8 +29,5 @@ const Comment = sequelize.define(
     updatedAt: false,
   }
 );
-
-// Associação com User
-Comment.belongsTo(User, { foreignKey: "user_id", as: "user" });
 
 module.exports = Comment;

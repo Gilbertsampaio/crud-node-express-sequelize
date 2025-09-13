@@ -1,5 +1,5 @@
 // controllers/categoryController.js
-const { Category, Service } = require('../models');
+const { Category, Service } = require('../models/index');
 
 exports.deleteCategory = async (req, res) => {
   try {

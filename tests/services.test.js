@@ -1,20 +1,20 @@
 const request = require("supertest");
 const app = require("../app");
 const sequelize = require("../config/database");
-const User = require("../models/user");
-const Service = require("../models/service");
+const { User, Service } = require('../models/index');
 
 describe("API Services", () => {
   let userId;
 
   // Cria um usuário antes de todos os testes
   beforeAll(async () => {
-    await sequelize.sync({ force: true }); // força recriação do banco
+    await sequelize.sync({ force: true });
     const user = await User.create({
       name: "User Teste",
       email: "user@teste.com",
-      password: "123456" // 🔑 senha obrigatória por causa do hook do bcrypt
+      password: "123456"
     });
+
     userId = user.id;
   });
 

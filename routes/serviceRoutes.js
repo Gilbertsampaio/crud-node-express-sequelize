@@ -1,8 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Service = require('../models/service');
-const User = require('../models/user');
-const Category = require('../models/category'); 
+const { User, Service, Category } = require('../models/index');
 const authMiddleware = require('../authMiddleware/authMiddleware');
 
 // Criar serviço

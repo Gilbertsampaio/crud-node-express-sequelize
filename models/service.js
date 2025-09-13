@@ -1,7 +1,5 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
-const User = require('./user');
-const Category = require('./category'); // importar Category
 
 const Service = sequelize.define('Service', {
   title: {
@@ -19,18 +17,10 @@ const Service = sequelize.define('Service', {
     type: DataTypes.INTEGER,
     allowNull: false
   },
-  categoryId: { // nova coluna
+  categoryId: {
     type: DataTypes.INTEGER,
-    allowNull: true // opcional
+    allowNull: true
   }
 });
-
-// Relacionamento: Service pertence a User
-Service.belongsTo(User, { foreignKey: 'userId', onDelete: 'CASCADE' });
-User.hasMany(Service, { foreignKey: 'userId' });
-
-// Relacionamento: Service pertence a Category
-Service.belongsTo(Category, { foreignKey: 'categoryId' });
-Category.hasMany(Service, { foreignKey: 'categoryId', onDelete: 'SET NULL' });
 
 module.exports = Service;

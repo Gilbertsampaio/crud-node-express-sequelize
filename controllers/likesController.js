@@ -1,5 +1,4 @@
-const Like = require('../models/likes');
-const User = require("../models/User");
+const { Like, User } = require('../models/index');
 
 exports.toggle = async (req, res) => {
   try {
