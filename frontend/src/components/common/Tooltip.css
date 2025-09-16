@@ -17,6 +17,10 @@
   pointer-events: none;
 }
 
+.storys-class {
+  
+}
+
 @keyframes fadeIn {
   to {
     opacity: 1;

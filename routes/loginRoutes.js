@@ -16,11 +16,17 @@ router.post('/', async (req, res) => {
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) return res.status(401).json({ error: 'Senha incorreta' });
 
-    // Cria token JWT usando variáveis de ambiente
+    // Atualiza last_active
+    await user.update(
+      { last_active: new Date() },
+      { silent: false } // garante que o Sequelize faça o update
+    );
+
+    // Cria token JWT
     const token = jwt.sign(
       { id: user.id, email: user.email },
-      process.env.JWT_SECRET, // deve estar definido no .env
-      { expiresIn: process.env.JWT_EXPIRES_IN || '1h' } // expiração dinâmica
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '1h' }
     );
 
     res.json({
@@ -33,6 +39,7 @@ router.post('/', async (req, res) => {
       }
     });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });

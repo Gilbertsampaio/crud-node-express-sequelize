@@ -27,10 +27,11 @@ export default function UsuarioForm() {
 
   const navigate = useNavigate();
   const { id } = useParams();
+  const { user, updateUser } = useAuth();
   const location = useLocation();
   const isPerfil = location.pathname === '/perfil/editar';
+  const isSameUser = parseInt(id) === user.id;
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5173';
-  const { user } = useAuth();
 
   const openImageModal = (imageUrl) => setSelectedImage(imageUrl);
   const closeImageModal = () => setSelectedImage(null);
@@ -46,7 +47,7 @@ export default function UsuarioForm() {
           setNome(res.data.name);
           setEmail(res.data.email);
           if (res.data.image) {
-            setPreview(`${API_URL}/uploads/${res.data.image}`);
+            setPreview(user.id === res.data.id ? `${API_URL}/uploads/${user.image}` : `${API_URL}/uploads/${res.data.image}`);
             setFileInputTitle(res.data.image);
           }
         } catch (err) {
@@ -62,7 +63,7 @@ export default function UsuarioForm() {
       };
       fetchUser();
     }
-  }, [id, isPerfil, API_URL]);
+  }, [id, isPerfil, API_URL, user]);
 
   useEffect(() => {
     const onEsc = (e) => e.key === 'Escape' && closeImageModal();
@@ -105,10 +106,16 @@ export default function UsuarioForm() {
     try {
       setLoading(true);
       if (id) {
-        await api.put(`/users/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+        const res = await api.put(`/users/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+        if (isSameUser && res.data.image) {
+          updateUser({ image: res.data.image });
+        }
         navigate('/usuarios', { state: { successMessage: 'Usuário atualizado com sucesso!' } });
       } else if (isPerfil) {
-        await api.put(`/users/${user.id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+        const res = await api.put(`/users/${user.id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+        if (res.data.image) {
+          updateUser({ image: res.data.image });
+        }
         navigate('/', { state: { successMessage: 'Perfil atualizado com sucesso!' } });
       } else {
         await api.post('/users', formData, { headers: { 'Content-Type': 'multipart/form-data' } });

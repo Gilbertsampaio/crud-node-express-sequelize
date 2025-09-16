@@ -50,11 +50,12 @@ export default function LikeButton({ modulo, registroId, posicao = null }) {
     };
 
     const posClass = posicao ? posicao : "left";
+    const posClassTooltip = modulo === 'storys' ? true : false;
 
     return (
         <div className={`like-button ${posClass}`} onClick={handleClick}>
             {total > 0 ? (
-                <Tooltip
+                <Tooltip storys={posClassTooltip}
                     text={
                         <ul style={{ margin: 0, padding: '0 0 0 0rem', listStyle: 'none' }}>
                             {users.map((name, index) => (

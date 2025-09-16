@@ -19,7 +19,9 @@ api.interceptors.response.use(
   error => {
     if (error.response?.status === 401 && error.response?.data?.error === 'logout') {
       localStorage.removeItem('token');
-      window.location.href = '/login?sessionExpired=1';
+      if (!window.location.pathname.startsWith('/login')) {
+        window.location.href = '/login?sessionExpired=1';
+      }
     }
     return Promise.reject(error);
   }

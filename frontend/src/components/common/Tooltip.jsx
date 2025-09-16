@@ -2,7 +2,7 @@ import { createPortal } from 'react-dom';
 import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import './Tooltip.css';
 
-export default function Tooltip({ children, text }) {
+export default function Tooltip({ children, text, storys }) {
     const [show, setShow] = useState(false);
     const [coords, setCoords] = useState({ top: 0, left: 0 });
     const wrapperRef = useRef(null);
@@ -21,6 +21,23 @@ export default function Tooltip({ children, text }) {
         }
     }, [show, text]);
 
+    // Define o estilo padrão do tooltip
+    const defaultStyles = {
+        position: 'absolute',
+        top: coords.top,
+        left: coords.left,
+    };
+
+    // Define os estilos para 'storys'
+    const storysStyles = {
+        position: 'absolute',
+        bottom: 10,
+        left: 50,
+    };
+
+    // Combina os estilos condicionalmente
+    const tooltipStyles = storys ? storysStyles : defaultStyles;
+
     return (
         <>
             <div
@@ -37,11 +54,7 @@ export default function Tooltip({ children, text }) {
                     <div
                         ref={tooltipRef}
                         className="tooltip-portal"
-                        style={{
-                            position: 'absolute',
-                            top: coords.top,
-                            left: coords.left,
-                        }}
+                        style={tooltipStyles} // Aplica o estilo dinâmico aqui
                     >
                         {text}
                     </div>,

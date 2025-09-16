@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../../context/useAuth";
 import "../../styles/NavBar.css";
 import ConfirmModal from "./ConfirmModal";
-import { FaSignOutAlt, FaUsers, FaCogs, FaListOl, FaHome, FaUser, FaUserCog, FaNewspaper } from "react-icons/fa";
+import { FaSignOutAlt, FaUsers, FaCogs, FaListOl, FaHome, FaUser, FaUserCog, FaNewspaper, FaRegPlayCircle } from "react-icons/fa";
 
 export default function NavBar() {
   const { user, logout } = useAuth();
@@ -49,6 +49,7 @@ export default function NavBar() {
     { label: 'Serviços', path: '/servicos', icon: <FaCogs size={14} /> },
     { label: 'Categorias', path: '/categorias', icon: <FaListOl size={14} /> },
     { label: 'Novidades', path: '/news', icon: <FaNewspaper size={14} /> },
+    { label: 'Stories', path: '/stories', icon: <FaRegPlayCircle size={14} /> },
   ];
 
   return (
@@ -68,13 +69,20 @@ export default function NavBar() {
 
           {user ? (
             <div className={`user-dropdown ${dropdownOpen ? 'open' : ''}`} ref={dropdownRef}>
-              <img
+              <div
+                alt="Avatar do usuário"
+                className="user-avatar-navbar"
+                onClick={toggleDropdown}
+                style={{ backgroundImage: `url(${avatarUrl})` }}>
+              </div>
+              {/* <img
                 src={avatarUrl}
                 alt="Avatar do usuário"
                 className="user-avatar"
                 onClick={toggleDropdown}
                 style={{ width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer' }}
-              />
+                onError={(e) => { e.currentTarget.src = "/images/avatar.png"; }}
+              /> */}
               {dropdownOpen && (
                 <ul className="user-menu">
                   <li onClick={goToProfile}>

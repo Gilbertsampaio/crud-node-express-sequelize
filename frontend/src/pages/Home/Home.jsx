@@ -1,6 +1,6 @@
 import React from "react";
 import { useEffect, useState } from 'react';
-import { FaUsers, FaCogs, FaListOl, FaNewspaper } from 'react-icons/fa';
+import { FaUsers, FaCogs, FaListOl, FaNewspaper, FaRegPlayCircle } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import api from '../../api/api';
 import '../../assets/styles.css';
@@ -9,29 +9,36 @@ import SectionTitle from '../../components/common/SectionTitle';
 import CarrosselServicos from '../../components/common/CarrosselServicos';
 import AccordionList from '../../components/common/AccordionList';
 import UltimasNovidades from '../../components/common/UltimasNovidades';
+import StoriesCarousel from "../../components/common/StoriesCarousel";
+import ChatWidget from "../../components/common/ChatWidget";
 
 export default function Home() {
   const [totalUsuarios, setTotalUsuarios] = useState(0);
   const [totalServicos, setTotalServicos] = useState(0);
   const [totalCategorias, setTotalCategorias] = useState(0);
   const [totalNovidades, setTotalNovidades] = useState(0);
+  const [totalStories, setTotalStories] = useState(0);
   const [servicos, setServicos] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
 
   useEffect(() => {
     const fetchTotals = async () => {
       try {
-        const [resUsuarios, resServicos, resCategorias, resNovidades] = await Promise.all([
+        const [resUsuarios, resServicos, resCategorias, resNovidades, resStories] = await Promise.all([
           api.get('/users'),
           api.get('/services'),
           api.get('/categories'),
-          api.get('/news')
+          api.get('/news'),
+          api.get('/stories')
         ]);
+
+        console.log(resStories.data.length)
 
         setTotalUsuarios(resUsuarios.data.length);
         setTotalServicos(resServicos.data.length);
         setTotalCategorias(resCategorias.data.length);
         setTotalNovidades(resNovidades.data.length);
+        setTotalStories(resStories.data.length);
         setServicos(resServicos.data);
         setUsuarios(resUsuarios.data);
 
@@ -50,6 +57,9 @@ export default function Home() {
     <div className="container">
       <h2>Bem-vindo ao Sistema</h2>
       <p>Use o menu acima para gerenciar Usuários, Serviços e Categorias.</p>
+
+      {/* Stories */}
+      <StoriesCarousel />
 
       <div className="card-container">
         <Link to="/usuarios" className="card">
@@ -79,13 +89,20 @@ export default function Home() {
           <span className="badge">{formatBadge(totalNovidades)}</span>
           <p>Gerencie as novidades disponíveis.</p>
         </Link>
+
+        <Link to="/stories" className="card">
+          <FaRegPlayCircle size={40} />
+          <h3>Stories</h3>
+          <span className="badge">{formatBadge(totalStories)}</span>
+          <p>Gerencie os stories disponíveis.</p>
+        </Link>
       </div>
 
       {/* Carrossel de serviços */}
       {servicos.length > 0 && (
         <>
           <SectionTitle align="center" text="Serviços em destaque" />
-          <CarrosselServicos servicos={servicos} autoScrollTime={0} infinite={false}/>
+          <CarrosselServicos servicos={servicos} autoScrollTime={0} infinite={false} />
         </>
       )}
 
@@ -104,6 +121,8 @@ export default function Home() {
           <UltimasNovidades />
         </>
       )}
+
+      <ChatWidget />
     </div>
   );
 }

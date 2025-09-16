@@ -74,7 +74,9 @@
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  object-fit: cover;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   cursor: zoom-in;
   flex-shrink: 0;
 }

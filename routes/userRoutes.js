@@ -6,6 +6,7 @@ const authMiddleware = require('../authMiddleware/authMiddleware');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const sequelize = require("../config/database");
 
 // Configuração do Multer
 const storage = multer.diskStorage({
@@ -18,6 +19,52 @@ const storage = multer.diskStorage({
   }
 });
 const upload = multer({ storage });
+
+router.post('/ping', authMiddleware, async (req, res) => {
+  try {
+    await User.update(
+      { last_active: new Date() }, // marca como online
+      { where: { id: req.user.id } }
+    );
+    res.sendStatus(200);
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
+});
+
+// 2. Lista usuários com status online
+router.get('/online', authMiddleware, async (req, res) => {
+  try {
+    const users = await User.findAll({
+      attributes: [
+        'id',
+        'name',
+        'image',
+        // calcula se está online (últimos 2 minutos)
+        [sequelize.literal(`last_active > NOW() - INTERVAL 2 MINUTE`), 'is_online']
+      ]
+    });
+    res.json(users);
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
+});
+
+// --- Logout (marcando usuário offline) ---
+router.post('/logout', authMiddleware, async (req, res) => {
+  try {
+    await User.update(
+      { last_active: null },        // usuário offline
+      { where: { id: req.user.id } }
+    );
+    res.json({ message: 'Logout realizado com sucesso.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erro ao realizar logout.' });
+  }
+});
 
 // --- Criar usuário (com upload de imagem) ---
 router.post('/', upload.single('image'), authMiddleware, async (req, res) => {
@@ -43,6 +90,7 @@ router.post('/', upload.single('image'), authMiddleware, async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      last_active: null
     };
 
     if (req.file) {

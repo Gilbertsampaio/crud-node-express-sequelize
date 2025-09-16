@@ -37,6 +37,10 @@ const User = sequelize.define('User', {
     type: DataTypes.BIGINT,
     allowNull: true,
   },
+  last_active: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  },
 });
 
 // Hash da senha antes de criar

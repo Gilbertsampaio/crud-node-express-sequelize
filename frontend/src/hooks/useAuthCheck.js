@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation  } from 'react-router-dom';
 
 function parseJwt(token) {
   try {
@@ -14,19 +14,25 @@ function parseJwt(token) {
 
 export default function useAuthCheck() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
+    if (location.pathname === '/login') return;
+
     const token = localStorage.getItem('token');
-    if (!token) {
+    if (user && !token) {
+      setUser(null);
       navigate('/login');
       return;
     }
 
     const decoded = parseJwt(token);
 
-    if (!decoded || Date.now() >= decoded.exp * 1000) {
+    if (user && (!decoded || Date.now() >= decoded.exp * 1000)) {
       localStorage.removeItem('token');
+      setUser(null);
       navigate('/login?sessionExpired=1');
     }
-  }, [navigate]);
+  }, [navigate, location, user]);
 }

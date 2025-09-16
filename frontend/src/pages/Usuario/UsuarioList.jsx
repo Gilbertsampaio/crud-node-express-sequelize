@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import api from '../../api/api';
 import Table from '../../components/common/Table';
@@ -7,11 +7,11 @@ import { FaPlus, FaEdit, FaHome, FaTrash, FaUsers } from 'react-icons/fa';
 import './UsuarioList.css';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import ImageModal from '../../components/common/ImageModal';
-import AuthContext from '../../context/AuthContext';
+import useAuth from "../../context/useAuth";
 import LoadingModal from "../../components/common/LoadingModal";
 
 export default function UsuarioList() {
-  const { user: currentUser } = useContext(AuthContext);
+  const { user } = useAuth();
   const [usuarios, setUsuarios] = useState([]);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -32,7 +32,7 @@ export default function UsuarioList() {
       const resUsuarios = await api.get('/users');
       setUsuarios(resUsuarios.data);
     } catch (err) {
-      if(err.response.data.error === 'logout') {
+      if (err.response.data.error === 'logout') {
         setError(err.response.data.error);
       } else {
         setError('Erro ao buscar dados: ' + err.message);
@@ -96,13 +96,13 @@ export default function UsuarioList() {
       label: 'Foto',
       render: (usuario) => (
         usuario.image ? (
-          <img
-            src={`${API_URL}/uploads/${usuario.image}`}
+          <div
+            className="user-image"
             alt={usuario.name}
-            style={{ width: 50, height: 50, borderRadius: '50%', objectFit: 'cover', cursor: 'zoom-in' }}
-            onClick={() => openImageModal(`${API_URL}/uploads/${usuario.image}`)}
-            onError={(e) => { e.currentTarget.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50"><rect width="100%" height="100%" fill="%23eee"/></svg>'; }}
-          />
+            style={{ backgroundImage: user.id === usuario.id ? `url(${API_URL}/uploads/${user.image})` : `url(${API_URL}/uploads/${usuario.image})` }}
+            onClick={() => openImageModal(user.id === usuario.id ? `${API_URL}/uploads/${user.image}` : `${API_URL}/uploads/${usuario.image}`)}
+            onError={(e) => { e.currentTarget.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50"><rect width="100%" height="100%" fill="%23eee"/></svg>'; }}>
+          </div>
         ) : (
           <img
             src={avatarUrl}
@@ -124,7 +124,7 @@ export default function UsuarioList() {
           <Button className="action btn-primary" onClick={() => handleEdit(usuario.id)}>
             <FaEdit />
           </Button>
-          {usuario.id !== currentUser.id && ( // oculta o botão se for o próprio usuário
+          {usuario.id !== user.id && ( // oculta o botão se for o próprio usuário
             <Button className="action btn-danger" onClick={() => handleDeleteClick(usuario.id)}>
               <FaTrash />
             </Button>

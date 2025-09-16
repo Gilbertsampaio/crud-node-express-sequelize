@@ -1,0 +1,105 @@
+.story-viewer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: black;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+}
+
+.story-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  color: white;
+}
+
+.storie-modal-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: none;
+    background: #de1010;
+    cursor: pointer;
+    padding: 12px 13px 13px 12px;
+    transition: all .3s ease;
+    line-height: 0px;
+    z-index: 100;
+}
+
+.storie-modal-close:hover {
+    background: #880808;
+    transition: all .3s ease;
+}
+
+.storie-modal-close svg {
+    font-size: 22px;
+}
+
+.story-progress {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 0px;
+  padding-left: 10px;
+  padding-right: 80px;
+  /* width: 95%; */
+}
+
+.progress-bar-container {
+  flex: 1;              /* distribui o espaço igualmente entre as barras */
+  background: #ccc;      /* cor da barra não preenchida */
+  height: 3px;
+  overflow: hidden;
+  border-radius: 2px;
+}
+
+.progress-bar-inner {
+  height: 100%;
+  background: #fff;       /* cor da barra preenchida */
+  width: 0%;             /* será atualizado dinamicamente via inline style */
+  transition: width 0.05s linear;
+}
+
+.story-content {
+  flex: 1;
+  position: relative;      /* necessário para posicionar as áreas clicáveis */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.story-media {
+  max-width: 100%;
+  max-height: 620px;
+  pointer-events: none;    /* evita conflito com as áreas clicáveis */
+}
+
+/* Áreas clicáveis esquerda/direita */
+.clickable-area {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  z-index: 10;
+  cursor: pointer;
+}
+
+.clickable-area.left {
+  left: 0;
+  width: 50%;
+}
+
+.clickable-area.right {
+  right: 0;
+  width: 50%;
+}
+
+/* Hover visual das áreas clicáveis */
+.clickable-area:hover {
+  background: rgba(255, 255, 255, 0.05);
+}

@@ -33,6 +33,15 @@
     cursor: zoom-in;
 }
 
+.video-preview {
+    width: 50%;
+    height: 180px;
+    object-fit: cover;
+    margin-top: 0px;
+    border-radius: 5px;
+    cursor: zoom-in;
+}
+
 .preview-container {
     position: relative;
 }
@@ -51,4 +60,14 @@
     background: #7e0909;
     transition: all .3s ease;
     scale: 1.05;
+}
+
+.user-image {
+  width: 57px;
+  height: 57px;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  cursor: zoom-in;
 }

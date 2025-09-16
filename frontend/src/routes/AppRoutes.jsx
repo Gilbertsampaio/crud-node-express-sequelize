@@ -9,6 +9,8 @@ import CategoriaList from '../pages/Categorias/CategoriaList';
 import CategoriaForm from '../pages/Categorias/CategoriaForm';
 import NewsList from "../pages/Novidades/NewsList";
 import NewsForm from "../pages/Novidades/NewsForm";
+import StoryList from "../pages/Story/StoryList";
+import StoryForm from "../pages/Story/StoryForm";
 import Login from "../pages/Login";
 import ForgotPassword from '../pages/ForgotPassword';
 import ResetPassword from '../pages/ResetPassword';
@@ -203,6 +205,36 @@ export default function AppRoutes() {
             <PrivateRoute>
               <PrivateLayout>
                 <NewsForm />
+              </PrivateLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/stories"
+          element={
+            <PrivateRoute>
+              <PrivateLayout>
+                <StoryList />
+              </PrivateLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/stories/novo"
+          element={
+            <PrivateRoute>
+              <PrivateLayout>
+                <StoryForm />
+              </PrivateLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/stories/editar/:id"
+          element={
+            <PrivateRoute>
+              <PrivateLayout>
+                <StoryForm />
               </PrivateLayout>
             </PrivateRoute>
           }

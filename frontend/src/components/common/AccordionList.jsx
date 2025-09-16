@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import ImageModal from '../../components/common/ImageModal';
 import LikeButton from "../../components/common/LikeButton";
 import CommentButton from "../../components/common/CommentButton";
+import useAuth from "../../context/useAuth";
 
 // const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5173';
 var API_URL = (typeof importMeta !== 'undefined' ? import.meta.env.VITE_API_URL : 'http://localhost:5173') || 'http://localhost:5173';
@@ -23,6 +24,7 @@ export default function AccordionList({ items }) {
     const [selectedImage, setSelectedImage] = useState(null);
     const openImageModal = (imageUrl) => setSelectedImage(imageUrl);
     const closeImageModal = () => setSelectedImage(null);
+    const { user } = useAuth();
 
     return (
         <div className="accordion-list">
@@ -56,18 +58,19 @@ export default function AccordionList({ items }) {
                             {/* Avatar */}
                             <div className="user-info">
                                 {item.image ? (
-                                    <img
-                                        src={`${API_URL}/uploads/${item.image}`}
-                                        alt={item.name}
+                                    <div
                                         className="user-avatar"
-                                        onClick={() =>
-                                            openImageModal(`${API_URL}/uploads/${item.image}`)
+                                        alt={item.name}
+                                        style={{ backgroundImage: user.id === item.id ? `url(${API_URL}/uploads/${user.image})` : `url(${API_URL}/uploads/${item.image})` }}
+                                         onClick={() =>
+                                            openImageModal(user.id === item.id ? `${API_URL}/uploads/${user.image}` : `${API_URL}/uploads/${item.image}`)
                                         }
                                         onError={(e) => {
                                             e.currentTarget.src =
                                                 "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='50' height='50'><rect width='100%' height='100%' fill='%23eee'/></svg>";
                                         }}
-                                    />
+                                        >
+                                    </div>
                                 ) : (
                                     <img
                                         src={avatarUrl}
