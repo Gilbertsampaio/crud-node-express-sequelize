@@ -1,0 +1,115 @@
+.options-footer.options-emoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 220ms cubic-bezier(.2,.9,.2,1);
+  outline: none;
+}
+
+/* animação do svg dentro do botão */
+.options-footer.options-emoji svg {
+  transition: transform 220ms cubic-bezier(.2,.9,.2,1);
+  transform-origin: center center;
+}
+
+/* quando ativo, rotaciona o svg (transformação suave) */
+.options-footer.options-emoji.active svg {
+  transform: rotate(45deg);
+}
+
+/* DROPDOWN: cresce a partir do botão (bottom left) */
+.emoji-dropdown {
+  position: absolute;
+  bottom: 88px;
+  left: 53px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  /* padding: 6px 0; */
+  z-index: 999;
+  min-width: 200px;
+  overflow: hidden;
+  transform-origin: bottom left;
+  transform: scale(0.85) translateY(6px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    transform 220ms cubic-bezier(.2,.9,.2,1),
+    opacity 180ms ease,
+    visibility 0ms linear 220ms;
+  will-change: transform, opacity;
+}
+
+/* aberto */
+.emoji-dropdown.open {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  bottom: 88px;
+  transition:
+    transform 220ms cubic-bezier(.2,.9,.2,1),
+    opacity 180ms ease,
+    visibility 0ms linear 0ms;
+}
+
+/* fechado (classe reversed) */
+.emoji-dropdown.closed {
+  transform: scale(0.85) translateY(6px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Opções (estágio inicial levemente deslocadas) */
+.emoji-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  user-select: none;
+  background: transparent;
+  border-radius: 6px;
+  transition: background 140ms ease, transform 180ms cubic-bezier(.2,.9,.2,1), opacity 180ms;
+  transform: translateY(6px) scale(0.98);
+  opacity: 0;
+}
+
+/* quando aberto, faz aparecer as opções com transição */
+.emoji-dropdown.open .emoji-option {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+/* pequeno stagger para visual melhor */
+.emoji-dropdown.open .emoji-option:nth-child(1) { transition-delay: 30ms; }
+.emoji-dropdown.open .emoji-option:nth-child(2) { transition-delay: 30ms; }
+.emoji-dropdown.open .emoji-option:nth-child(3) { transition-delay: 30ms; }
+.emoji-dropdown.open .emoji-option:nth-child(4) { transition-delay: 30ms; }
+
+/* hover option */
+.emoji-option:hover {
+  background: #f5f7ff;
+}
+
+/* texto da opção */
+.emoji-option span {
+  font-size: 14px;
+  color: #0A0A0A;
+}
+
+/* pequena responsividade/ajuste */
+@media (max-width: 480px) {
+  .emoji-dropdown {
+    min-width: 160px;
+  }
+}

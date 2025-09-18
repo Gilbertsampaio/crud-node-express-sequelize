@@ -32,8 +32,6 @@ export default function Home() {
           api.get('/stories')
         ]);
 
-        console.log(resStories.data.length)
-
         setTotalUsuarios(resUsuarios.data.length);
         setTotalServicos(resServicos.data.length);
         setTotalCategorias(resCategorias.data.length);
