@@ -20,7 +20,13 @@ export default function ChatMessage({ message, currentUser, chatName }) {
                             src={`/uploads/messages/${message.metadata.fileName}`}
                             alt="enviada"
                         />
-                        <div className="degradee"></div>
+                        {message.content !== "[uploaded file]" ? (
+                            <span className="text-file">
+                                {message.content}
+                            </span>
+                        ) : (
+                            <div className="degradee"></div>
+                        )}
                     </div>
                 ) : message.type === "video" ? (
                     <div className="container-img-sender">
@@ -29,6 +35,13 @@ export default function ChatMessage({ message, currentUser, chatName }) {
                             src={`/uploads/messages/${message.metadata.fileName}`}
                             style={{ maxWidth: "100%", borderRadius: 8 }}
                         />
+                        {message.content !== "[uploaded file]" ? (
+                            <span className="text-file">
+                                {message.content}
+                            </span>
+                        ) : (
+                            <div className="degradee"></div>
+                        )}
                         <div className="degradee"></div>
                     </div>
                 ) : message.type === "audio" ? (
@@ -36,32 +49,40 @@ export default function ChatMessage({ message, currentUser, chatName }) {
                         <audio controls src={`/uploads/messages/${message.metadata.fileName}`} />
                     </div>
                 ) : message.type === "file" ? (
-                    <a
-                        href={`/uploads/messages/${message.metadata.fileName}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        // className="file-link"
-                        style={{ display: "flex", gap: 8, textDecoration: "none", color: "#333", background: "rgba(194, 189, 184, .15)", padding: "10px", borderRadius: "8px 8px 3px 8px", lineHeight: "16px", }}
-                        download
-                    >
-                        <DocumentJPEIcon
-                            size={32}
-                            color="#757778"
-                            label={
-                                message.metadata.fileName
-                                    ? message.metadata.fileName.split(".").pop().toUpperCase().slice(0, 3)
-                                    : "FIL"
-                            }
-                        />
-                        <span>
-                            <div style={{marginBottom: "5px"}}>
-                                {message.metadata.fileName}
-                            </div>
-                            <small style={{color: "rgba(0, 0, 0, .6)", fontSize: "10px", }}>
-                                {message.metadata.fileName ? message.metadata.fileName.split(".").pop().toUpperCase() : "DOC"} - {message.metadata.fileSize}
-                            </small>
-                        </span>
-                    </a>
+                    <>
+
+                        <a
+                            href={`/uploads/messages/${message.metadata.fileName}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            // className="file-link"
+                            style={{ display: "flex", gap: 8, textDecoration: "none", color: "#333", background: "rgba(194, 189, 184, .15)", padding: "10px", borderRadius: "8px 8px 3px 8px", lineHeight: "16px", }}
+                            download
+                        >
+                            <DocumentJPEIcon
+                                size={32}
+                                color="#757778"
+                                label={
+                                    message.metadata.fileName
+                                        ? message.metadata.fileName.split(".").pop().toUpperCase().slice(0, 3)
+                                        : "FIL"
+                                }
+                            />
+                            <span>
+                                <div style={{ marginBottom: "5px" }}>
+                                    {message.metadata.fileName}
+                                </div>
+                                <small style={{ color: "rgba(0, 0, 0, .6)", fontSize: "10px", }}>
+                                    {message.metadata.fileName ? message.metadata.fileName.split(".").pop().toUpperCase() : "DOC"} - {message.metadata.fileSize}
+                                </small>
+                            </span>
+                        </a>
+                        {message.content !== "[uploaded file]" && (
+                            <span className="text-file">
+                                {message.content}
+                            </span>
+                        )}
+                    </>
                 ) : (
                     <span>{message.content}</span>
                 )}
@@ -72,7 +93,7 @@ export default function ChatMessage({ message, currentUser, chatName }) {
                         </span>
                     ) : (
                         <span className="message-status">
-                            <MsgDoubleCheckIcon size={16} color={`${message.type === "image" ? "#fff" : "gray"}`} />
+                            <MsgDoubleCheckIcon size={16} color={`${message.type === "image" && message.content === "[uploaded file]" ? "#fff" : "gray"}`} />
                         </span>
                     )
                 )}

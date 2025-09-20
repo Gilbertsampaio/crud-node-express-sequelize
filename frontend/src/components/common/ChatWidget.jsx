@@ -610,7 +610,7 @@ export default function ChatWidget() {
                                 <div className="div-preview">
                                     <div
                                         className="chat-body"
-                                        ref={el => (chatBodyRefs.current[c.id] = el)}
+                                        
                                     >
                                         <div className="container-chat">
                                             {c.messages?.map((m, idx) => {
@@ -631,7 +631,7 @@ export default function ChatWidget() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="chat-footer">
+                                <div className="chat-footer" ref={el => (chatBodyRefs.current[c.id] = el)}>
                                     <div className="container-chat">
                                         <textarea
                                             ref={el => (textareaRefs.current[c.id] = el)}
@@ -653,9 +653,9 @@ export default function ChatWidget() {
 
                                                 // ajusta para enviar qualquer arquivo, mas mantém envio automático para imagens
                                                 if (payload) {
-                                                    const msgType = payload.type === "file" && payload.metadata?.fileName?.match(/\.(jpg|jpeg|png|gif)$/i)
-                                                        ? "image"
-                                                        : payload.type;
+                                                    // const msgType = payload.type === "file" && payload.metadata?.fileName?.match(/\.(jpg|jpeg|png|gif)$/i)
+                                                    //     ? "image"
+                                                    //     : payload.type;
 
                                                     ws.current.send(JSON.stringify({
                                                         type: "message",
@@ -663,7 +663,7 @@ export default function ChatWidget() {
                                                             senderId: user.id,
                                                             receiverId: c.id,
                                                             content: payload.content,
-                                                            msgType: msgType,
+                                                            msgType: payload.type,
                                                             metadata: payload.metadata,
                                                         },
                                                     }));

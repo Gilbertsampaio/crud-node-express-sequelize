@@ -186,6 +186,7 @@
   justify-content: center;
   align-items: center;
   z-index: 10;
+  bottom: -95px;
 }
 
 .preview-content {
@@ -223,8 +224,8 @@
 }
 
 .preview-content img {
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: 82%;
   object-fit: cover;
   object-position: center;
   border-radius: 10px;
@@ -233,7 +234,7 @@
 .chat-container .preview-actions {
   margin-top: 15px;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   margin-top: auto;
 }
 

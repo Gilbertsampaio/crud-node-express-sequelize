@@ -20,16 +20,29 @@ export default function ChatAttachment({ chatId, isOpenAttachment, onToggleAttac
   const [alertMessage, setAlertMessage] = useState('');
   const [showAlert, setShowAlert] = useState(false);
   const [selectedOption, setSelectedOption] = useState(null);
+  const textareaRefs = useRef({});
+  const [inputs, setInputs] = useState({});
 
   const resetarInput = React.useCallback(() => {
     // setSelectedOption(null);
     setPreviewFile(null);
+    setInputs(prev => ({ ...prev, [chatId]: "" }));
     if (fileInputRef.current) fileInputRef.current.value = null;
-  }, [setPreviewFile]);
+  }, [setPreviewFile, chatId]);
 
   useEffect(() => {
     if (resetRef) resetRef.current = resetarInput;
   }, [resetRef, resetarInput]);
+
+  useEffect(() => {
+    if (previewFile) {
+      // espera o portal renderizar
+      requestAnimationFrame(() => {
+        const textarea = textareaRefs.current[chatId];
+        if (textarea) textarea.focus();
+      });
+    }
+  }, [previewFile, chatId]);
 
   useEffect(() => {
     if (!isOpenAttachment) return;
@@ -110,7 +123,10 @@ export default function ChatAttachment({ chatId, isOpenAttachment, onToggleAttac
   const handleSendFile = async () => {
     if (!previewFile) return;
 
+    console.log(selectedOption)
+
     const formData = new FormData();
+    const text = inputs[chatId];
     formData.append("file", previewFile);
 
     try {
@@ -120,20 +136,29 @@ export default function ChatAttachment({ chatId, isOpenAttachment, onToggleAttac
       });
       const data = await res.json();
 
-      onToggleAttachment(false, {
+      const message = {
         type: selectedOption,
-        content: "[uploaded file]",
         metadata: {
           fileName: data.fileName,
           fileSize: data.fileSize
         },
-      });
+      };
+
+      if (text && text.trim() !== "") {
+        message.content = text.trim();
+      } else {
+        message.content = "[uploaded file]"
+      }
+
+      onToggleAttachment(false, message);
     } catch (err) {
       console.error("Erro no upload:", err);
+    } finally {
+      if (previewFile?.previewUrl) {
+        URL.revokeObjectURL(previewFile.previewUrl);
+      }
+      resetarInput();
     }
-
-    if (previewFile?.previewUrl) URL.revokeObjectURL(previewFile.previewUrl);
-    setPreviewFile(null);
   };
 
   const previewModal = previewFile && (
@@ -187,6 +212,13 @@ export default function ChatAttachment({ chatId, isOpenAttachment, onToggleAttac
               <CloseRoundedIcon size={24} color="#0A0A0A" />
             </div>
           </button>
+          <textarea
+            ref={el => (textareaRefs.current[chatId] = el)}
+            placeholder="Digite sua mensagem..."
+            className="chat-message-preview"
+            value={inputs[chatId] || ""}
+            onChange={e => setInputs(prev => ({ ...prev, [chatId]: e.target.value }))}
+          />
           <span
             className="options-footer options-send"
             onClick={handleSendFile}
