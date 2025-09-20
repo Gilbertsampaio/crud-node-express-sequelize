@@ -123,8 +123,6 @@ export default function ChatAttachment({ chatId, isOpenAttachment, onToggleAttac
   const handleSendFile = async () => {
     if (!previewFile) return;
 
-    console.log(selectedOption)
-
     const formData = new FormData();
     const text = inputs[chatId];
     formData.append("file", previewFile);
@@ -161,6 +159,13 @@ export default function ChatAttachment({ chatId, isOpenAttachment, onToggleAttac
     }
   };
 
+  function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + " KB";
+    if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+    return (bytes / (1024 * 1024 * 1024)).toFixed(1) + " GB";
+  }
+
   const previewModal = previewFile && (
     <div className="preview-modal">
       <div className={`preview-content ${previewFile?.type?.startsWith("video/") && "video"}`}>
@@ -194,12 +199,10 @@ export default function ChatAttachment({ chatId, isOpenAttachment, onToggleAttac
               fontSize: "1.5rem",
               color: "#aebac1"
             }}>Prévia indisponível</div>
+            <div style={{ fontSize: "1rem", color: "rgb(174, 186, 193)" }}>
+              {previewFile && `${formatFileSize(previewFile.size)} - ${previewFile.name.split('.').pop().toUpperCase()}`}
+            </div>
           </div>
-          // <iframe
-          //   src={previewFile.previewUrl} // agora previewUrl existe para PDF
-          //   title={previewFile.name}
-          //   style={{ width: "100%", height: "400px", border: "none", marginBottom: 10 }}
-          // />
         )}
 
         <div className="preview-actions">
