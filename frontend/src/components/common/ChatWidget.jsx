@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import api from "../../api/api";
 import "./ChatWidget.css";
 import {
@@ -20,9 +20,13 @@ import MsgDoubleCheckIcon from "./icons/MsgDoubleCheckIcon";
 import ExpressionsIcon from "./icons/ExpressionsIcon";
 import PlusRoundedIcon from "./icons/PlusRoundedIcon";
 import SendFilledIcon from "./icons/SendFilledIcon";
+import MaximizeSmallIcon from "./icons/MaximizeSmallIcon";
+import MinimizeSmallIcon from "./icons/MinimizeSmallIcon";
+import CloseRoundedIcon from "./icons/CloseRoundedIcon";
 import MicOutlined from "./icons/MicOutlined";
 import ChatAttachment from "./ChatAttachment";
 import EmojiDropdown from "./EmojiDropdown";
+import ChatMessage from "./ChatMessage";
 
 export default function ChatWidget() {
     const [open, setOpen] = useState(false);
@@ -41,6 +45,9 @@ export default function ChatWidget() {
     const chatBodyRefs = useRef({});
     const [openAttachment, setOpenAttachment] = useState(null);
     const [openEmoji, setOpenEmoji] = useState(null);
+    const [maximizarChat, setMaximizarChat] = useState(null);
+    const [previewFiles, setPreviewFiles] = useState({});
+    const attachmentRefs = useRef({});
 
     const ws = useRef(null);
 
@@ -343,11 +350,27 @@ export default function ChatWidget() {
         try {
             const res = await api.get(`/messages/${selectedUser.id}?currentUserId=${user.id}`);
             const history = res.data;
+
             setChats(prev => {
-                const exists = prev.find(c => c.id === selectedUser.id);
-                let updated;
-                if (exists) updated = prev.map(c => c.id === selectedUser.id ? { ...c, open: true, messages: history } : { ...c, open: false });
-                else updated = [{ ...selectedUser, open: true, messages: history }, ...prev.map(c => ({ ...c, open: false }))];
+                let updated = prev.map(c => {
+                    if (c.open && c.id !== selectedUser.id) {
+                        // minimiza o chat que estava aberto
+                        attachmentRefs.current[c.id]?.current?.(); // reseta apenas deste chat
+                        if (openAttachment === c.id) setOpenAttachment(null);
+                        return { ...c, open: false };
+                    }
+                    return c;
+                });
+
+                const exists = updated.find(c => c.id === selectedUser.id);
+                if (exists) {
+                    updated = updated.map(c =>
+                        c.id === selectedUser.id ? { ...c, open: true, messages: history } : c
+                    );
+                } else {
+                    updated.unshift({ ...selectedUser, open: true, messages: history });
+                }
+
                 updateVisibleChats(updated);
                 return updated;
             });
@@ -357,8 +380,31 @@ export default function ChatWidget() {
     };
 
     const toggleChat = id => setChats(prev => {
-        const updated = prev.map(c => c.id === id ? { ...c, open: !c.open } : { ...c, open: false });
+        const updated = prev.map(c => {
+            if (c.id === id) {
+                // Se o chat já estava aberto, vai minimizar: reset preview
+                if (c.open) {
+                    attachmentRefs.current[c.id]?.current?.(); // reset preview
+                    if (openAttachment === c.id) setOpenAttachment(null);
+                }
+                // Alterna o estado do chat clicado
+                return { ...c, open: !c.open };
+            }
+
+            if (c.open && c.id !== id) {
+                // Chat que vai ser minimizado automaticamente
+                attachmentRefs.current[c.id]?.current?.(); // reset preview
+                if (openAttachment === c.id) setOpenAttachment(null);
+                return { ...c, open: false };
+            }
+
+            return c;
+        });
+
         updateVisibleChats(updated);
+
+        if (maximizarChat === id) setMaximizarChat(null);
+
         return updated;
     });
 
@@ -368,7 +414,20 @@ export default function ChatWidget() {
             updateVisibleChats(updated);
             return updated;
         });
+
         setInputs(prev => ({ ...prev, [id]: "" }));
+        setPreviewFiles(prev => {
+            const copy = { ...prev };
+            delete copy[id];
+            return copy;
+        });
+
+        if (openAttachment === id) setOpenAttachment(null);
+        if (maximizarChat === id) setMaximizarChat(null);
+    };
+
+    const maxChat = id => {
+        setMaximizarChat(maximizarChat === id ? null : id);
     };
 
     const typingTimers = useRef({});
@@ -475,7 +534,10 @@ export default function ChatWidget() {
         <>
             <div className="chat-widget">
                 {/* barra */}
-                <div className="chat-bar" onClick={() => setOpen(!open)}>
+                <div
+                    className="chat-bar"
+                    onClick={() => setOpen(!open)}
+                >
                     <span className="image" style={{ backgroundImage: `url(${getAvatar(user?.image)})` }} />
                     <span className="chat-bar-text">
                         Mensagens
@@ -527,62 +589,107 @@ export default function ChatWidget() {
                             <div className="chat-header" onClick={(e) => { if (e.target.closest("button")) return; toggleChat(c.id); }}>
                                 <span className="image" style={{ backgroundImage: `url(${getAvatar(c.image)})` }} />
                                 <span>{c.name}</span>
-                                <span className={`status ${c.is_online ? "online" : "offline"}`} />
-                                <button onClick={() => closeChat(c.id)}><FaTimes /></button>
+                                {/* <span className={`status ${c.is_online ? "online" : "offline"}`} /> */}
+                                <span style={{ marginLeft: "auto" }}>
+                                    {c.open && (
+                                        <button onClick={() => maxChat(c.id)}>
+                                            {maximizarChat === c.id ? (
+                                                <MinimizeSmallIcon size={20} color="#0A0A0A" />
+                                            ) : (
+                                                <MaximizeSmallIcon size={20} color="#0A0A0A" />
+                                            )}
+
+                                        </button>
+                                    )}
+                                    <button onClick={() => closeChat(c.id)}><CloseRoundedIcon size={24} color="#0A0A0A" /></button>
+                                </span>
                             </div>
 
-                            <div className="chat-container">
+                            <div className={`chat-container ${maximizarChat === c.id ? "max" : ""}`}>
                                 <div className="background"></div>
-                                <div
-                                    className="chat-body"
-                                    ref={el => (chatBodyRefs.current[c.id] = el)}
-                                >
-                                    <div className="container-chat">
-                                        {c.messages?.map((m, idx) => {
-                                            const isOwn = m.sender_id === user.id;
-                                            return (
-                                                <div key={idx} className={`chat-message-row ${isOwn ? "own" : "other"} message-item`} data-message-id={m.id} data-receiver-id={m.receiver_id} data-read-at={m.read_at}>
-                                                    {/* <p className="chat-message-bubble">{isOwn ? "Você" : c.name}: {m.content}</p> */}
-                                                    <p className="chat-message-bubble">
-                                                        {isOwn ? "Você" : c.name}: {m.content}
-                                                        {isOwn && (
-                                                            m.read_at ? (
-                                                                <span className="message-status lida">
-                                                                    <MsgDoubleCheckIcon size={16} color="#007BFC" />
-                                                                </span>
-                                                            ) : (
-                                                                <span className="message-status">
-                                                                    <MsgDoubleCheckIcon size={16} color="gray" />
-                                                                </span>
-                                                            )
-                                                        )}
-                                                    </p>
+                                <div className="div-preview">
+                                    <div
+                                        className="chat-body"
+                                        ref={el => (chatBodyRefs.current[c.id] = el)}
+                                    >
+                                        <div className="container-chat">
+                                            {c.messages?.map((m, idx) => {
+                                                return (
+                                                    <ChatMessage
+                                                        key={idx}
+                                                        message={m}
+                                                        currentUser={user}
+                                                        chatName={c.name}
+                                                    />
+                                                );
+                                            })}
+                                            {typingStatus[c.id] && (
+                                                <div className="chat-message-row other">
+                                                    <div className="chat-message-bubble"><TypingIndicator /></div>
                                                 </div>
-                                            );
-                                        })}
-                                        {typingStatus[c.id] && (
-                                            <div className="chat-message-row other">
-                                                <div className="chat-message-bubble"><TypingIndicator /></div>
-                                            </div>
-                                        )}
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-
                                 <div className="chat-footer">
                                     <div className="container-chat">
                                         <textarea
                                             ref={el => (textareaRefs.current[c.id] = el)}
                                             placeholder="Digite sua mensagem..."
                                             className="chat-message"
-
                                             value={inputs[c.id] || ""}
                                             onChange={(e) => handleInputChange(c.id, e.target.value)}
                                         />
+
                                         <ChatAttachment
-                                            chatIdAttachment={c.id}
+                                            resetRef={attachmentRefs.current[c.id] = attachmentRefs.current[c.id] || React.createRef()}
+                                            chatId={c.id}
+                                            previewFile={previewFiles[c.id]}
+                                            setPreviewFile={(file) => setPreviewFiles(prev => ({ ...prev, [c.id]: file }))}
+                                            chatBodyRef={chatBodyRefs.current[c.id]}
                                             isOpenAttachment={openAttachment === c.id}
-                                            onToggleAttachment={(open) => setOpenAttachment(open ? c.id : null)}
+                                            onToggleAttachment={(open, payload) => {
+                                                setOpenAttachment(open ? c.id : null);
+
+                                                // ajusta para enviar qualquer arquivo, mas mantém envio automático para imagens
+                                                if (payload) {
+                                                    const msgType = payload.type === "file" && payload.metadata?.fileName?.match(/\.(jpg|jpeg|png|gif)$/i)
+                                                        ? "image"
+                                                        : payload.type;
+
+                                                    ws.current.send(JSON.stringify({
+                                                        type: "message",
+                                                        payload: {
+                                                            senderId: user.id,
+                                                            receiverId: c.id,
+                                                            content: payload.content,
+                                                            msgType: msgType,
+                                                            metadata: payload.metadata,
+                                                        },
+                                                    }));
+                                                }
+                                            }}
                                         />
+                                        {/* <ChatAttachment
+                                            isOpenAttachment={openAttachment === c.id}
+                                            onToggleAttachment={(open, payload) => {
+                                                setOpenAttachment(open ? c.id : null);
+
+                                                if (payload?.type === "image") {
+                                                    // envia pelo WS a nova mensagem
+                                                    ws.current.send(JSON.stringify({
+                                                        type: "message",
+                                                        payload: {
+                                                            senderId: user.id,
+                                                            receiverId: c.id,
+                                                            content: payload.content, // "[image]" ou vazio
+                                                            msgType: payload.type,    // "image"
+                                                            metadata: payload.metadata // { fileName: "xxxx.jpg" }
+                                                        }
+                                                    }));
+                                                }
+                                            }}
+                                        /> */}
                                         <EmojiDropdown
                                             chatIdEmoji={c.id}
                                             isOpenEmoji={openEmoji === c.id}
@@ -605,14 +712,6 @@ export default function ChatWidget() {
                                             </span>
                                         )}
                                     </div>
-                                    {/* <div className="chat-options">
-                                        <div className="options-left">
-                                            <button><FaRegImage /></button>
-                                            <button><FaPaperclip /></button>
-                                            <button><FaRegSmile /></button>
-                                        </div>
-                                        <button className="send-button" onClick={() => handleSendMessage(c.id)}><FaPaperPlane /></button>
-                                    </div> */}
                                 </div>
                             </div>
                         </div>
