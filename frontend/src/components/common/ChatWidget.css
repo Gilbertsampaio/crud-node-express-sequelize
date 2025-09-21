@@ -528,6 +528,29 @@
   right: 10px;
 }
 
+.options-footer-emoji-preview {
+  position: absolute;
+  bottom: 0;
+  right: 50px;
+}
+
+.options-footer-emoji-preview .options-emoji {
+  left: inherit;
+  right: 20px;
+}
+
+.options-footer-emoji-preview .emoji-dropdown.open {
+  left: inherit;
+  right: 20px;
+  transform-origin: bottom right;
+}
+
+.options-footer-emoji-preview .emoji-dropdown.closed {
+  left: inherit;
+  right: 20px;
+  transform-origin: bottom right;
+}
+
 .options-audio {
   background: transparent !important;
   position: absolute;

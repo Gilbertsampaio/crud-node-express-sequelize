@@ -9,6 +9,8 @@ import CloseRoundedIcon from "./icons/CloseRoundedIcon";
 import SendFilledIcon from "./icons/SendFilledIcon";
 import PreviewGenericIcon from "./icons/PreviewGenericIcon";
 import AlertModal from "./AlertModal";
+import EmojiDropdown from "./EmojiDropdown";
+
 // import api from '../../api/api';
 import "./ChatAttachment.css";
 
@@ -22,6 +24,7 @@ export default function ChatAttachment({ chatId, isOpenAttachment, onToggleAttac
   const [selectedOption, setSelectedOption] = useState(null);
   const textareaRefs = useRef({});
   const [inputs, setInputs] = useState({});
+  const [openEmoji, setOpenEmoji] = useState(null);
 
   const resetarInput = React.useCallback(() => {
     // setSelectedOption(null);
@@ -166,6 +169,16 @@ export default function ChatAttachment({ chatId, isOpenAttachment, onToggleAttac
     return (bytes / (1024 * 1024 * 1024)).toFixed(1) + " GB";
   }
 
+  const handleEmojiSelect = (chatId, emoji) => {
+    setInputs(prev => ({
+      ...prev,
+      [chatId]: (prev[chatId] || "") + emoji,
+    }));
+    setTimeout(() => {
+      if (textareaRefs.current[chatId]) textareaRefs.current[chatId].focus();
+    }, 0);
+  };
+
   const previewModal = previewFile && (
     <div className="preview-modal">
       <div className={`preview-content ${previewFile?.type?.startsWith("video/") && "video"}`}>
@@ -222,6 +235,14 @@ export default function ChatAttachment({ chatId, isOpenAttachment, onToggleAttac
             value={inputs[chatId] || ""}
             onChange={e => setInputs(prev => ({ ...prev, [chatId]: e.target.value }))}
           />
+          <span className="options-footer-emoji-preview">
+            <EmojiDropdown
+              chatIdEmoji={chatId}
+              isOpenEmoji={openEmoji === chatId}
+              onToggleEmoji={(open) => setOpenEmoji(open ? chatId : null)}
+              onSelectEmoji={handleEmojiSelect}
+            />
+          </span>
           <span
             className="options-footer options-send"
             onClick={handleSendFile}
