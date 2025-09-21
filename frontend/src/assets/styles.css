@@ -13,6 +13,10 @@ body {
   color: #333;
 }
 
+.no-scroll {
+  overflow: hidden;
+}
+
 .app-wrapper {
   display: flex;
   flex-direction: column;

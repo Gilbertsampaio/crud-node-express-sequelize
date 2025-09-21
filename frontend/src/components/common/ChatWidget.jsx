@@ -78,6 +78,17 @@ export default function ChatWidget() {
     }, [messagesCountKey, visibleChats, typingStatus]);
 
     useEffect(() => {
+        if (open) {
+            document.body.classList.add("no-scroll");
+        } else {
+            document.body.classList.remove("no-scroll");
+        }
+
+        // cleanup em caso de desmontagem do componente
+        return () => document.body.classList.remove("no-scroll");
+    }, [open]);
+
+    useEffect(() => {
         const openedChat = visibleChats.find(c => c.open);
         if (openedChat) {
             const chatBody = chatBodyRefs.current[openedChat.id];
@@ -610,7 +621,7 @@ export default function ChatWidget() {
                                 <div className="div-preview">
                                     <div
                                         className="chat-body"
-                                        
+                                        ref={el => (chatBodyRefs.current[c.id] = el)}
                                     >
                                         <div className="container-chat">
                                             {c.messages?.map((m, idx) => {
@@ -631,7 +642,8 @@ export default function ChatWidget() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="chat-footer" ref={el => (chatBodyRefs.current[c.id] = el)}>
+                                {/* ref={el => (chatBodyRefs.current[c.id] = el)} */}
+                                <div className="chat-footer">
                                     <div className="container-chat">
                                         <textarea
                                             ref={el => (textareaRefs.current[c.id] = el)}
