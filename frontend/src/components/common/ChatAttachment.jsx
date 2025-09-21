@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import MediaFilledRefreshed from "./icons/MediaFilledRefreshed";
+import VideoCallRefreshed from "./icons/VideoCallRefreshed";
 import DocumentFilledRefreshed from "./icons/DocumentFilledRefreshed";
 import CameraFilledRefreshed from "./icons/CameraFilledRefreshed";
 import HeadphonesFilled from "./icons/HeadphonesFilled";
@@ -78,8 +79,8 @@ export default function ChatAttachment({ chatId, isOpenAttachment, onToggleAttac
     },
     {
       label: "Vídeos",
-      icon: MediaFilledRefreshed,
-      color: "#007BFC",
+      icon: VideoCallRefreshed,
+      color: "#ffcc00",
       onClick: () => chamaFuncao("video"),
     },
     { label: "Câmera", icon: CameraFilledRefreshed, color: "#FF2E74" },
