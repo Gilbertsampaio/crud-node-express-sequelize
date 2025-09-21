@@ -1,9 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 import MsgDoubleCheckIcon from "./icons/MsgDoubleCheckIcon";
 import DocumentJPEIcon from "./icons/DocumentJPEIcon";
+import ImageModal from "./ImageModal";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5173";
+const IMAGEM_PADRAO = "../../../public/images/news.png";
 
-export default function ChatMessage({ message, currentUser, chatName }) {
+export default function ChatMessage({ message, currentUser/*, chatName*/ }) {
     const isOwn = message.sender_id === currentUser.id;
+    const [selectedMedia, setSelectedMedia] = useState(null);
+    const closeImageModal = () => setSelectedMedia(null);
+
+    const openImageModal = (url, type) => setSelectedMedia({ url, type });
 
     return (
         <div
@@ -17,8 +24,15 @@ export default function ChatMessage({ message, currentUser, chatName }) {
                 {message.type === "image" ? (
                     <div className="container-img-sender">
                         <img
-                            src={`/uploads/messages/${message.metadata.fileName}`}
+                            src={`${API_URL}/uploads/messages/${message.metadata.fileName}`}
                             alt="enviada"
+                            className="img-preview"
+                            onClick={() =>
+                                openImageModal(`${API_URL}/uploads/messages/${message.metadata.fileName}`, "image")
+                            }
+                            onError={(e) => {
+                                e.target.src = IMAGEM_PADRAO;
+                            }}
                         />
                         {message.content !== "[uploaded file]" ? (
                             <span className="text-file">
@@ -31,9 +45,17 @@ export default function ChatMessage({ message, currentUser, chatName }) {
                 ) : message.type === "video" ? (
                     <div className="container-img-sender">
                         <video
-                            controls
-                            src={`/uploads/messages/${message.metadata.fileName}`}
-                            style={{ maxWidth: "100%", borderRadius: 8 }}
+                            autoPlay={false}
+                            src={`${API_URL}/uploads/messages/${message.metadata.fileName}`}
+                            style={{ maxWidth: "100%", borderRadius: 8, cursor: "zoom-in" }}
+                            onClick={() =>
+                                openImageModal(`${API_URL}/uploads/messages/${message.metadata.fileName}`, "video")
+                            }
+                            onError={(e) => {
+                                e.currentTarget.src =
+                                    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'><rect width='100%' height='100%' fill='%23eee'/></svg>";
+                            }}
+                            controls={false}
                         />
                         {message.content !== "[uploaded file]" ? (
                             <span className="text-file">
@@ -98,6 +120,12 @@ export default function ChatMessage({ message, currentUser, chatName }) {
                     )
                 )}
             </div>
+            <ImageModal
+                show={!!selectedMedia}
+                imageUrl={selectedMedia?.url}
+                type={selectedMedia?.type}
+                onClose={closeImageModal}
+            />
         </div>
     );
 }

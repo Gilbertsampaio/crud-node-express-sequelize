@@ -110,7 +110,7 @@ Servidor disponível em: [http://localhost:3000](http://localhost:3000)
 **Frontend:**
 ```bash
 cd frontend
-npm start
+npm run dev
 ```
 Servidor disponível em: [http://localhost:3001](http://localhost:3001) (ou porta configurada)
 
