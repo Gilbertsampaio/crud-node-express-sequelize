@@ -109,12 +109,12 @@ export default function ChatAttachment({ chatId, isOpenAttachment, onToggleAttac
       return;
     }
 
-    const allowedTypes = ["image/", "application/pdf", "audio/", "video/"];
-    if (!allowedTypes.some((t) => file.type.startsWith(t))) {
-      setAlertMessage("Tipo de arquivo não permitido!");
-      setShowAlert(true)
-      return;
-    }
+    // const allowedTypes = ["image/", "application/pdf", "audio/", "video/"];
+    // if (!allowedTypes.some((t) => file.type.startsWith(t))) {
+    //   setAlertMessage("Tipo de arquivo não permitido!");
+    //   setShowAlert(true)
+    //   return;
+    // }
 
     // cria previewUrl para qualquer tipo que terá preview
     if (file.type.startsWith("image/") || file.type.startsWith("video/") || file.type === "application/pdf") {
@@ -182,7 +182,7 @@ export default function ChatAttachment({ chatId, isOpenAttachment, onToggleAttac
 
   const previewModal = previewFile && (
     <div className="preview-modal">
-      <div className={`preview-content ${previewFile?.type?.startsWith("video/") && "video"}`}>
+      <div className={`preview-content ${!previewFile?.type?.startsWith("image/") && "video"}`}>
 
         {selectedOption === "image" && (
           <img
