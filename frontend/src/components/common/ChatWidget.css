@@ -190,18 +190,30 @@
 }
 
 .status {
-  width: 10px;
-  height: 10px;
+  width: 15px;
+  height: 15px;
   border-radius: 50%;
-  margin-left: auto;
+  border: 1px solid #fff;
+  position: absolute;
+  top: 8px;
+  left: 50px;
+  transition: all .3s ease;
+}
+
+.chat-user:hover .status:not(.online) {
+  border: 1px solid #fff;
+  transition: all .3s ease;
+  background: #9c9a9a;
 }
 
 .status.online {
   background: #4caf50;
+  transition: all .3s ease;
 }
 
 .status.offline {
   background: #ccc;
+  transition: all .3s ease;
 }
 
 .chat-windows {

@@ -18,7 +18,7 @@ import useAuth from "../../context/useAuth";
 import TypingIndicator from "./TypingIndicator";
 import ArchiveRefreshedIcon from "./icons/ArchiveRefreshedIcon";
 import ArrowIcon from "./icons/ArrowIcon";
-import PlusRoundedIcon from "./icons/PlusRoundedIcon";
+import PinRefreshedIcon from "./icons/PinRefreshedIcon";
 import MoreRefreshed from "./icons/MoreRefreshed";
 import SendFilledIcon from "./icons/SendFilledIcon";
 import MaximizeSmallIcon from "./icons/MaximizeSmallIcon";
@@ -54,6 +54,7 @@ export default function ChatWidget() {
     const attachmentRefs = useRef({});
     const moreOptionsRefs = useRef({});
     const [archivedChats, setArchivedChats] = useState({});
+    const [fixedChats, setFixedChats] = useState({});
     const [showArchived, setShowArchived] = useState(false);
 
     const ws = useRef(null);
@@ -79,6 +80,22 @@ export default function ChatWidget() {
         fetchArchived();
     }, []);
 
+    useEffect(() => {
+        async function fetchFixed() {
+            try {
+                const res = await api.get(`/chat/fixed`);
+                const mapped = {};
+                res.data.forEach(chat => {
+                    mapped[chat.chat_id] = true;
+                });
+                setFixedChats(mapped);
+            } catch (err) {
+                console.error("Erro ao carregar fixados", err);
+            }
+        }
+        fetchFixed();
+    }, []);
+
     const handleArchiveToggle = async (chatId) => {
         try {
             if (archivedChats[chatId]) {
@@ -96,6 +113,26 @@ export default function ChatWidget() {
             }
         } catch (err) {
             console.error("Erro ao atualizar arquivamento", err);
+        }
+    };
+
+    const handleFixeToggle = async (chatId) => {
+        try {
+            if (fixedChats[chatId]) {
+                // Já arquivado → desarquivar
+                await api.delete(`/chat/${chatId}/unpinChat`);
+                setFixedChats(prev => {
+                    const copy = { ...prev };
+                    delete copy[chatId];
+                    return copy;
+                });
+            } else {
+                // Não está arquivado → arquivar
+                await api.post(`/chat/${chatId}/pinChat`);
+                setFixedChats(prev => ({ ...prev, [chatId]: true }));
+            }
+        } catch (err) {
+            console.error("Erro ao atualizar fixamento", err);
         }
     };
 
@@ -597,6 +634,12 @@ export default function ChatWidget() {
         }, 0);
     };
 
+    const sortedUsers = [...users].sort((a, b) => {
+        const aPinned = fixedChats[a.id] ? 1 : 0;
+        const bPinned = fixedChats[b.id] ? 1 : 0;
+        return bPinned - aPinned;
+    });
+
     return (
         <>
             <div className="chat-widget">
@@ -638,11 +681,13 @@ export default function ChatWidget() {
                         {error ? (
                             <div>{error}</div>
                         ) : (
-                            users
+                            sortedUsers
                                 .filter(u => u.id !== user.id)
                                 .filter(u => !archivedChats[u.id]).map(u => {
+                                    const isPinned = fixedChats[u.id];
                                     return (
                                         <div key={u.id} className="chat-user" onClick={() => openChat(u)}>
+                                            <span className={`status ${u.is_online ? "online" : "offline"}`} />
                                             <span
                                                 className={`image ${typingStatus[u.id] ? "typing-effect" : ""}`}
                                                 style={{ backgroundImage: `url(${getAvatar(u.image)})` }}
@@ -650,8 +695,12 @@ export default function ChatWidget() {
                                             <span style={{ textAlign: "left", display: "flex", flexDirection: "column", paddingTop: 10 }}>
                                                 <span>{u.name}</span>
                                                 <div className="typing-label">{typingStatus[u.id] ? "escrevendo..." : "\u00A0"}</div>
+                                                {isPinned && (
+                                                    <span style={{ position: "absolute", bottom: 10, right: 10}}>
+                                                        <PinRefreshedIcon size={20} color="#ccc" />
+                                                    </span>
+                                                )}
                                             </span>
-                                            <span className={`status ${u.is_online ? "online" : "offline"}`} />
                                             {unreadCounts[u.id] > 0 && (
                                                 <span className="unread-badge">
                                                     <span>{unreadCounts[u.id]}</span>
@@ -673,7 +722,7 @@ export default function ChatWidget() {
                                 <ArrowIcon size={22} color="#333" direction="right" />
                             </button>
                         </div>
-                        <div className={`archived-users ${ users.filter((u) => archivedChats[u.id]).length === 0 && "body-usernot-arquivo"}`}>
+                        <div className={`archived-users ${users.filter((u) => archivedChats[u.id]).length === 0 && "body-usernot-arquivo"}`}>
                             {users.filter((u) => archivedChats[u.id]).length === 0 ? (
                                 <div style={{ padding: "1rem", color: "#888", textAlign: "center" }}>
                                     Nenhuma conversa arquivada
@@ -739,9 +788,13 @@ export default function ChatWidget() {
                                             case "arquivar":
                                                 handleArchiveToggle(c.id);
                                                 break;
+                                            case "fixar":
+                                                handleFixeToggle(c.id);
+                                                break;
                                         }
                                     }}
                                     chatArquivado={archivedChats}
+                                    chatFixado={fixedChats}
                                 />
                                 {c.open && (
                                     <button onClick={() => maxChat(c.id)}>

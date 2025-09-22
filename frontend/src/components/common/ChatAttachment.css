@@ -113,6 +113,13 @@
   transition: all .3s ease;
 }
 
+.attachment-option.redHover:hover svg path,
+.attachment-option.redHover:hover span {
+  color: #de1010 !important;
+  fill: #de1010 !important;
+  transition: all .3s ease;
+}
+
 /* texto da opção */
 .attachment-option span {
   font-size: 18px;

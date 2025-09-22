@@ -7,6 +7,11 @@ import DeleteRefreshed from "./icons/DeleteRefreshed";
 import MoreRefreshed from "./icons/MoreRefreshed";
 import CloseRoundedIcon from "./icons/CloseRoundedIcon";
 import ArchiveRefreshedIcon from "./icons/ArchiveRefreshedIcon";
+import BlockRefreshedIcon from "./icons/BlockRefreshedIcon";
+import PinRefreshedIcon from "./icons/PinRefreshedIcon";
+import UnpinRefreshedIcon from "./icons/UnpinRefreshedIcon";
+
+
 import ImageModal from "./ImageModal";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5173";
 const IMAGEM_PADRAO = `${API_URL}/images/news.png`;
@@ -22,13 +27,15 @@ export default function ChatAttachment({
     setPreviewDados,
     resetRef,
     onOptionSelect,
-    chatArquivado
+    chatArquivado,
+    chatFixado
 }) {
     const wrapperRef = useRef(null);
     const [selectedOption, setSelectedOption] = useState(null);
     const [userData, setUserData] = useState(null);
     const [selectedMedia, setSelectedMedia] = useState(null);
     const [labelArquivado, setLabelArquivado] = useState("Arquivar");
+    const [labelFixado, setLabelFixado] = useState("Fixar");
     const closeImageModal = () => setSelectedMedia(null);
 
     const openImageModal = (url, type) => setSelectedMedia({ url, type });
@@ -39,8 +46,9 @@ export default function ChatAttachment({
     }, [setPreviewDados]);
 
     useEffect(() => {
-        setLabelArquivado(chatArquivado[chatId] ? "Desarquivar" : "Arquivar")
-    }, [chatArquivado, chatId]);
+        setLabelArquivado(chatArquivado[chatId] ? "Desarquivar" : "Arquivar");
+        setLabelFixado(chatFixado[chatId] ? "Desafixar conversa" : "Fixar")
+    }, [chatArquivado, chatFixado, chatId]);
 
     useEffect(() => {
         if (resetRef) resetRef.current = resetarDados;
@@ -64,34 +72,64 @@ export default function ChatAttachment({
 
     const options = [
         {
+            id: 1,
             label: "Dados do contato",
             icon: InfoRefreshed,
             color: "rgba(0, 0, 0, .6)",
             onClick: () => chamaFuncao("dados"),
+            class: ""
         },
         {
+            id: 2,
             label: "Fechar conversa",
             icon: CloseCircle,
             color: "rgba(0, 0, 0, .6)",
             onClick: () => chamaFuncao("fechar"),
+            class: ""
         },
         {
+            id: 3,
+            label: `${labelFixado}`,
+            icon: chatFixado[chatId] ? UnpinRefreshedIcon : PinRefreshedIcon,
+            color: "rgba(0, 0, 0, .6)",
+            onClick: () => chamaFuncao("fixar"),
+            class: ""
+        },
+        {
+            id: 4,
             label: `${labelArquivado} conversa`,
             icon: ArchiveRefreshedIcon,
             color: "rgba(0, 0, 0, .6)",
             onClick: () => chamaFuncao("arquivar"),
+            class: ""
         },
         {
+            id: 5,
+            label: "<hr>",
+        },
+        {
+            id: 6,
+            label: "Bloquear",
+            icon: BlockRefreshedIcon,
+            color: "rgba(0, 0, 0, .6)",
+            onClick: () => chamaFuncao("bloquear"),
+            class: "redHover"
+        },
+        {
+            id: 7,
             label: "Limpar conversa",
             icon: ClearCircleRefreshed,
             color: "rgba(0, 0, 0, .6)",
             onClick: () => chamaFuncao("limpar"),
+            class: "redHover"
         },
         {
+            id: 8,
             label: "Apagar conversa",
             icon: DeleteRefreshed,
             color: "rgba(0, 0, 0, .6)",
             onClick: () => chamaFuncao("apagar"),
+            class: "redHover"
         },
     ];
 
@@ -108,6 +146,10 @@ export default function ChatAttachment({
                 break;
 
             case "arquivar":
+                if (onOptionSelect) onOptionSelect(optionLabel);
+                break;
+
+            case "fixar":
                 if (onOptionSelect) onOptionSelect(optionLabel);
                 break;
 
@@ -224,17 +266,32 @@ export default function ChatAttachment({
             >
                 {options.map((opt, index) => {
                     const Icon = opt.icon;
+                    if (opt.label === "<hr>") {
+                        return <hr key={index} style={{
+                            borderColor: "rgba(0, 0, 0, .1)",
+                            borderTopWidth: "1px",
+                            borderTopStyle: "solid",
+                            marginInlineStart: "1px",
+                            marginInlineEnd: "1px",
+                            marginBottom: 4,
+                            marginTop: 4,
+                            borderBottomStyle: "none",
+                            borderInlineStartStyle: "none",
+                            borderInlineEndStyle: "none",
+                        }} />;
+                    }
+
+                    if (chatArquivado[chatId] && opt.id === 3) return null;
+
                     return (
                         <div
-                            style={{minWidth: "210px"}}
+                            style={{ minWidth: "210px" }}
                             key={index}
-                            className="attachment-option"
+                            className={`attachment-option ${opt.class}`}
                             onClick={opt.onClick || (() => onToggleOptions(false))}
                         >
-                            <Icon size={26} color={opt.color} direction={chatArquivado[chatId] ? "up" : "down"}/>
-                            <span
-                                style={{ color: "rgba(0, 0, 0, .6)", fontSize: ".9375rem" }}
-                            >
+                            <Icon size={26} color={opt.color} direction={chatArquivado[chatId] ? "up" : "down"} />
+                            <span style={{ color: "rgba(0, 0, 0, .6)", fontSize: ".9375rem" }}>
                                 {opt.label}
                             </span>
                         </div>
@@ -242,14 +299,16 @@ export default function ChatAttachment({
                 })}
             </div>
 
-            {previewDados &&
+            {
+                previewDados &&
                 (() => {
                     const container = document.querySelector(
                         `.chat-window[data-chat-id="${chatId}"] .div-preview`
                     );
                     if (container) return createPortal(previewModal, container);
                     return null;
-                })()}
+                })()
+            }
             <ImageModal
                 show={!!selectedMedia}
                 imageUrl={selectedMedia?.url}
