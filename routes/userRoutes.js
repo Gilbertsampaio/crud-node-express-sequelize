@@ -40,6 +40,7 @@ router.get('/online', authMiddleware, async (req, res) => {
       attributes: [
         'id',
         'name',
+        'email',
         'image',
         // calcula se está online (últimos 2 minutos)
         [sequelize.literal(`last_active > NOW() - INTERVAL 2 MINUTE`), 'is_online']

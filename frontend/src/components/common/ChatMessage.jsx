@@ -3,7 +3,7 @@ import MsgDoubleCheckIcon from "./icons/MsgDoubleCheckIcon";
 import DocumentJPEIcon from "./icons/DocumentJPEIcon";
 import ImageModal from "./ImageModal";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5173";
-const IMAGEM_PADRAO = "../../../public/images/news.png";
+const IMAGEM_PADRAO = `${API_URL}/images/news.png`;
 
 export default function ChatMessage({ message, currentUser/*, chatName*/ }) {
     const isOwn = message.sender_id === currentUser.id;

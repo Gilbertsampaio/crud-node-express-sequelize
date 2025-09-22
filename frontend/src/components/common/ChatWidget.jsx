@@ -16,9 +16,10 @@ import {
 } from "react-icons/fa";
 import useAuth from "../../context/useAuth";
 import TypingIndicator from "./TypingIndicator";
-import MsgDoubleCheckIcon from "./icons/MsgDoubleCheckIcon";
-import ExpressionsIcon from "./icons/ExpressionsIcon";
+import ArchiveRefreshedIcon from "./icons/ArchiveRefreshedIcon";
+import ArrowIcon from "./icons/ArrowIcon";
 import PlusRoundedIcon from "./icons/PlusRoundedIcon";
+import MoreRefreshed from "./icons/MoreRefreshed";
 import SendFilledIcon from "./icons/SendFilledIcon";
 import MaximizeSmallIcon from "./icons/MaximizeSmallIcon";
 import MinimizeSmallIcon from "./icons/MinimizeSmallIcon";
@@ -27,6 +28,7 @@ import MicOutlined from "./icons/MicOutlined";
 import ChatAttachment from "./ChatAttachment";
 import EmojiDropdown from "./EmojiDropdown";
 import ChatMessage from "./ChatMessage";
+import MoreOptionChat from "./MoreOptionChat";
 
 export default function ChatWidget() {
     const [open, setOpen] = useState(false);
@@ -44,10 +46,15 @@ export default function ChatWidget() {
     const textareaRefs = useRef({});
     const chatBodyRefs = useRef({});
     const [openAttachment, setOpenAttachment] = useState(null);
+    const [openMoreOption, setOpenMoreOption] = useState(null);
     const [openEmoji, setOpenEmoji] = useState(null);
     const [maximizarChat, setMaximizarChat] = useState(null);
     const [previewFiles, setPreviewFiles] = useState({});
+    const [previewDados, setPreviewDados] = useState({});
     const attachmentRefs = useRef({});
+    const moreOptionsRefs = useRef({});
+    const [archivedChats, setArchivedChats] = useState({});
+    const [showArchived, setShowArchived] = useState(false);
 
     const ws = useRef(null);
 
@@ -55,6 +62,42 @@ export default function ChatWidget() {
     const observersRef = useRef(new Map()); // chatId -> observer
     const pendingReadsRef = useRef(new Map()); // chatId -> Set(messageIds)
     const flushTimerRef = useRef(null);
+
+    useEffect(() => {
+        async function fetchArchived() {
+            try {
+                const res = await api.get(`/chat/archived`);
+                const mapped = {};
+                res.data.forEach(chat => {
+                    mapped[chat.chat_id] = true;
+                });
+                setArchivedChats(mapped);
+            } catch (err) {
+                console.error("Erro ao carregar arquivados", err);
+            }
+        }
+        fetchArchived();
+    }, []);
+
+    const handleArchiveToggle = async (chatId) => {
+        try {
+            if (archivedChats[chatId]) {
+                // Já arquivado → desarquivar
+                await api.delete(`/chat/${chatId}/unarchive`);
+                setArchivedChats(prev => {
+                    const copy = { ...prev };
+                    delete copy[chatId];
+                    return copy;
+                });
+            } else {
+                // Não está arquivado → arquivar
+                await api.post(`/chat/${chatId}/archive`);
+                setArchivedChats(prev => ({ ...prev, [chatId]: true }));
+            }
+        } catch (err) {
+            console.error("Erro ao atualizar arquivamento", err);
+        }
+    };
 
     useEffect(() => {
         const openedChat = visibleChats.find(c => c.open);
@@ -223,7 +266,8 @@ export default function ChatWidget() {
                                     const newChat = {
                                         id: chatId,
                                         name: userData?.name || msg.sender_name || "Usuário",
-                                        image: userData?.image || null,
+                                        email: userData?.email || msg.sender_email || "",
+                                        image: userData?.image || msg.sender_image || null,
                                         is_online: userData?.is_online ?? true,
                                         open: false,
                                         messages: history.length ? history : [msg]
@@ -348,12 +392,17 @@ export default function ChatWidget() {
                 const resUser = await api.get(`/users/${chatId}`);
                 userData = resUser.data;
             } catch {
-                userData = { name: msg.sender_name || "Usuário", image: null, is_online: true };
+                userData = {
+                    name: msg.sender_name || "Usuário",
+                    email: msg.sender_email || "E-mail",
+                    image: msg.sender_image || null,
+                    is_online: true
+                };
             }
 
             return { userData, history };
         } catch {
-            return { userData: { name: msg.sender_name || "Usuário", image: null, is_online: true }, history: [msg] };
+            return { userData: { name: msg.sender_name || "Usuário", email: msg.sender_email || "E-mail", image: msg.sender_image || null, is_online: true }, history: [msg] };
         }
     };
 
@@ -367,6 +416,7 @@ export default function ChatWidget() {
                     if (c.open && c.id !== selectedUser.id) {
                         // minimiza o chat que estava aberto
                         attachmentRefs.current[c.id]?.current?.(); // reseta apenas deste chat
+                        moreOptionsRefs.current[c.id]?.current?.();
                         if (openAttachment === c.id) setOpenAttachment(null);
                         return { ...c, open: false };
                     }
@@ -397,6 +447,9 @@ export default function ChatWidget() {
                 if (c.open) {
                     attachmentRefs.current[c.id]?.current?.(); // reset preview
                     if (openAttachment === c.id) setOpenAttachment(null);
+
+                    moreOptionsRefs.current[c.id]?.current?.(); // reset preview
+                    if (moreOptionsRefs === c.id) setOpenMoreOption(null);
                 }
                 // Alterna o estado do chat clicado
                 return { ...c, open: !c.open };
@@ -406,6 +459,9 @@ export default function ChatWidget() {
                 // Chat que vai ser minimizado automaticamente
                 attachmentRefs.current[c.id]?.current?.(); // reset preview
                 if (openAttachment === c.id) setOpenAttachment(null);
+
+                moreOptionsRefs.current[c.id]?.current?.(); // reset preview
+                if (moreOptionsRefs === c.id) setOpenMoreOption(null);
                 return { ...c, open: false };
             }
 
@@ -562,15 +618,29 @@ export default function ChatWidget() {
                     {open ? <FaChevronDown /> : <FaChevronUp />}
                 </div>
 
-                <div ref={chatPanelRef} className="chat-panel" style={{ maxHeight: `${panelHeight}px` }}>
+                <div ref={chatPanelRef} className="chat-panel" style={{ maxHeight: `${panelHeight}px`, position: "relative", overflowX: "hidden" }}>
                     <span className="search"><FaSearch /></span>
                     <input type="text" placeholder="Pesquisar mensagens" className="chat-search" />
+                    {users.some(u => archivedChats[u.id]) && (
+                        <div
+                            className="buttonArquivo"
+                            onClick={() => setShowArchived(true)}
+                        >
+                            <div>
+                                <ArchiveRefreshedIcon />
+                            </div>
+                            <div className="labelArquivo" style={{ display: "flex", alignItems: "center" }}>
+                                <span>Arquivadas</span>
+                            </div>
+                        </div>
+                    )}
                     <div className="chat-users-list">
                         {error ? (
                             <div>{error}</div>
                         ) : (
                             users
-                                .filter(u => u.id !== user.id).map(u => {
+                                .filter(u => u.id !== user.id)
+                                .filter(u => !archivedChats[u.id]).map(u => {
                                     return (
                                         <div key={u.id} className="chat-user" onClick={() => openChat(u)}>
                                             <span
@@ -592,28 +662,98 @@ export default function ChatWidget() {
                                 })
                         )}
                     </div>
+                    {/* Painel lateral de arquivados */}
+                    <div className={`archived-panel ${showArchived ? "open" : ""}`}>
+                        <div className="archived-header">
+                            <span>Conversas Arquivadas</span>
+                            <button
+                                className="close-archived"
+                                onClick={() => setShowArchived(false)}
+                            >
+                                <ArrowIcon size={22} color="#333" direction="right" />
+                            </button>
+                        </div>
+                        <div className={`archived-users ${ users.filter((u) => archivedChats[u.id]).length === 0 && "body-usernot-arquivo"}`}>
+                            {users.filter((u) => archivedChats[u.id]).length === 0 ? (
+                                <div style={{ padding: "1rem", color: "#888", textAlign: "center" }}>
+                                    Nenhuma conversa arquivada
+                                </div>
+                            ) : (
+                                users
+                                    .filter((u) => archivedChats[u.id])
+                                    .map((u) => (
+                                        <div
+                                            key={u.id}
+                                            className="chat-user"
+                                            onClick={() => openChat(u)}
+                                        >
+                                            <span
+                                                className="image"
+                                                style={{
+                                                    backgroundImage: `url(${getAvatar(u.image)})`,
+                                                }}
+                                            />
+                                            <span
+                                                style={{
+                                                    textAlign: "left",
+                                                    display: "flex",
+                                                    flexDirection: "column",
+                                                    paddingTop: 10,
+                                                }}
+                                            >
+                                                <span>{u.name}</span>
+                                            </span>
+                                        </div>
+                                    )))}
+                        </div>
+                    </div>
                 </div>
 
                 <div className="chat-windows">
                     {visibleChats.map(c => (
                         <div key={c.id} className={`chat-window ${c.open ? "open" : "closed"}`} data-chat-id={c.id}>
-                            <div className="chat-header" onClick={(e) => { if (e.target.closest("button")) return; toggleChat(c.id); }}>
+                            <div className={`chat-header ${maximizarChat === c.id ? "max" : ""}`} onClick={(e) => { if (e.target.closest("button")) return; toggleChat(c.id); }}>
                                 <span className="image" style={{ backgroundImage: `url(${getAvatar(c.image)})` }} />
                                 <span>{c.name}</span>
                                 {/* <span className={`status ${c.is_online ? "online" : "offline"}`} /> */}
-                                <span style={{ marginLeft: "auto" }}>
-                                    {c.open && (
-                                        <button onClick={() => maxChat(c.id)}>
-                                            {maximizarChat === c.id ? (
-                                                <MinimizeSmallIcon size={20} color="#0A0A0A" />
-                                            ) : (
-                                                <MaximizeSmallIcon size={20} color="#0A0A0A" />
-                                            )}
+                                <MoreOptionChat
+                                    resetRef={moreOptionsRefs.current[c.id] = moreOptionsRefs.current[c.id] || React.createRef()}
+                                    chatId={c.id}
+                                    dadosUsuario={{
+                                        name: c.name,
+                                        email: c.email || "",
+                                        image: c.image || ""
+                                    }}
+                                    previewDados={previewDados[c.id]}
+                                    setPreviewDados={(file) => setPreviewDados(prev => ({ ...prev, [c.id]: file }))}
+                                    chatBodyRef={chatBodyRefs.current[c.id]}
+                                    isOpenOptions={openMoreOption === c.id}
+                                    onToggleOptions={(open) => {
+                                        setOpenMoreOption(open ? c.id : null);
+                                    }}
+                                    onOptionSelect={(option) => {
+                                        switch (option) {
+                                            case "fechar":
+                                                closeChat(c.id);
+                                                break;
+                                            case "arquivar":
+                                                handleArchiveToggle(c.id);
+                                                break;
+                                        }
+                                    }}
+                                    chatArquivado={archivedChats}
+                                />
+                                {c.open && (
+                                    <button onClick={() => maxChat(c.id)}>
+                                        {maximizarChat === c.id ? (
+                                            <MinimizeSmallIcon size={20} color="#0A0A0A" />
+                                        ) : (
+                                            <MaximizeSmallIcon size={20} color="#0A0A0A" />
+                                        )}
 
-                                        </button>
-                                    )}
-                                    <button onClick={() => closeChat(c.id)}><CloseRoundedIcon size={24} color="#0A0A0A" /></button>
-                                </span>
+                                    </button>
+                                )}
+                                <button onClick={() => closeChat(c.id)}><CloseRoundedIcon size={24} color="#0A0A0A" /></button>
                             </div>
 
                             <div className={`chat-container ${maximizarChat === c.id ? "max" : ""}`}>

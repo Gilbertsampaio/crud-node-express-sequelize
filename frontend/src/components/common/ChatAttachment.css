@@ -35,6 +35,19 @@
     opacity 180ms ease,
     visibility 0ms linear 220ms;
   will-change: transform, opacity;
+  height: fit-content;
+}
+
+.attachment-dropdown.header {
+  transform-origin: top right;
+  top: 60px;
+  left: inherit;
+  right: calc(30% - 10px);
+}
+
+.chat-header.max .attachment-dropdown.header {
+  top: 60px;
+  right: calc(30% - 10px);
 }
 
 /* aberto */
@@ -187,6 +200,7 @@
   align-items: center;
   z-index: 10;
   bottom: -95px;
+  /* height: 100%; */
 }
 
 .preview-content {
@@ -208,7 +222,7 @@
   padding-top: 60px;
 }
 
-.chat-container.max .preview-content:not(.video) {
+.chat-container.max .preview-content:not(.video, .dados) {
   width: 100%;
   height: 100%;
   background: #f0f2f5;

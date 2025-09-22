@@ -30,9 +30,9 @@ export default function ChatAttachment({ chatId, isOpenAttachment, onToggleAttac
   const resetarInput = React.useCallback(() => {
     // setSelectedOption(null);
     setPreviewFile(null);
-    setInputs(prev => ({ ...prev, [chatId]: "" }));
+    // setInputs(prev => ({ ...prev, [chatId]: "" }));
     if (fileInputRef.current) fileInputRef.current.value = null;
-  }, [setPreviewFile, chatId]);
+  }, [setPreviewFile]);
 
   useEffect(() => {
     if (resetRef) resetRef.current = resetarInput;
