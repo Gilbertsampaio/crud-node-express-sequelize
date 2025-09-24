@@ -19,12 +19,13 @@ import TypingIndicator from "./TypingIndicator";
 import ArchiveRefreshedIcon from "./icons/ArchiveRefreshedIcon";
 import ArrowIcon from "./icons/ArrowIcon";
 import PinRefreshedIcon from "./icons/PinRefreshedIcon";
-import MoreRefreshed from "./icons/MoreRefreshed";
+import ArrowDropIcon from "./icons/ArrowDropIcon";
 import SendFilledIcon from "./icons/SendFilledIcon";
 import MaximizeSmallIcon from "./icons/MaximizeSmallIcon";
 import MinimizeSmallIcon from "./icons/MinimizeSmallIcon";
 import CloseRoundedIcon from "./icons/CloseRoundedIcon";
 import MicOutlined from "./icons/MicOutlined";
+import BlockRefreshedIcon from "./icons/BlockRefreshedIcon";
 import ChatAttachment from "./ChatAttachment";
 import EmojiDropdown from "./EmojiDropdown";
 import ChatMessage from "./ChatMessage";
@@ -46,7 +47,7 @@ export default function ChatWidget() {
     const textareaRefs = useRef({});
     const chatBodyRefs = useRef({});
     const [openAttachment, setOpenAttachment] = useState(null);
-    const [openMoreOption, setOpenMoreOption] = useState(null);
+    const [openMoreOptions, setOpenMoreOptions] = useState({});
     const [openEmoji, setOpenEmoji] = useState(null);
     const [maximizarChat, setMaximizarChat] = useState(null);
     const [previewFiles, setPreviewFiles] = useState({});
@@ -55,7 +56,11 @@ export default function ChatWidget() {
     const moreOptionsRefs = useRef({});
     const [archivedChats, setArchivedChats] = useState({});
     const [fixedChats, setFixedChats] = useState({});
+    const [blockChats, setBlockChats] = useState({});
     const [showArchived, setShowArchived] = useState(false);
+    const [blockChatsMsg, setBlockChatsMsg] = useState({});
+    const blockChatsRef = useRef({});
+    const [cleanChats, setCleanChats] = useState({});
 
     const ws = useRef(null);
 
@@ -96,6 +101,39 @@ export default function ChatWidget() {
         fetchFixed();
     }, []);
 
+    useEffect(() => {
+        async function fetchBlock() {
+            try {
+                const res = await api.get(`/chat/blocked`);
+                const mapped = {};
+                res.data.forEach(chat => {
+                    mapped[chat.chat_id] = true;
+                    blockChatsRef.current[chat.chat_id] = true;
+                });
+                setBlockChats(mapped);
+            } catch (err) {
+                console.error("Erro ao carregar bloqueados", err);
+            }
+        }
+        fetchBlock();
+    }, []);
+
+    useEffect(() => {
+        async function fetchClean() {
+            try {
+                const res = await api.get(`/chat/cleaned`);
+                const mapped = {};
+                res.data.forEach(chat => {
+                    mapped[chat.chat_id] = true;
+                });
+                setCleanChats(mapped);
+            } catch (err) {
+                console.error("Erro ao carregar limpos", err);
+            }
+        }
+        fetchClean();
+    }, []);
+
     const handleArchiveToggle = async (chatId) => {
         try {
             if (archivedChats[chatId]) {
@@ -133,6 +171,89 @@ export default function ChatWidget() {
             }
         } catch (err) {
             console.error("Erro ao atualizar fixamento", err);
+        }
+    };
+
+    const handleBlockToggle = async (chatId) => {
+        try {
+            if (blockChats[chatId]) {
+                // Já bloqueado → desbloquear
+                await api.delete(`/chat/${chatId}/unblockChat`);
+                setBlockChats(prev => {
+                    const copy = { ...prev };
+                    delete copy[chatId];
+                    return copy;
+                });
+
+                // 🔹 Envia pelo WebSocket (tempo real)
+                if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+                    ws.current.send(JSON.stringify({
+                        type: "blocked",
+                        payload: {
+                            userId: user.id,     // quem desbloqueou
+                            chatId,              // alvo
+                            blockedValue: false
+                        }
+                    }));
+                }
+
+            } else {
+                // Não está bloqueado → bloquear
+                await api.post(`/chat/${chatId}/blockChat`);
+                setBlockChats(prev => ({ ...prev, [chatId]: true }));
+
+                // 🔹 Envia pelo WebSocket (tempo real)
+                if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+                    ws.current.send(JSON.stringify({
+                        type: "blocked",
+                        payload: {
+                            userId: user.id,     // quem bloqueou
+                            chatId,              // alvo
+                            blockedValue: true
+                        }
+                    }));
+                }
+            }
+
+            setTimeout(() => {
+                const chatBody = chatBodyRefs.current[chatId];
+                if (chatBody) {
+                    chatBody.scrollTo({
+                        top: chatBody.scrollHeight,
+                        behavior: "smooth",
+                    });
+                }
+            }, 500);
+        } catch (err) {
+            console.error("Erro ao atualizar bloqueio", err);
+        }
+    };
+
+    const handleCleanChat = async (chat, idOpt) => {
+        try {
+            if (cleanChats[chat.id]) {
+                // Já limpo → deslimpar
+                await api.delete(`/chat/${chat.id}/uncleanChat`);
+                setCleanChats(prev => {
+                    const copy = { ...prev };
+                    delete copy[chat.id];
+                    return copy;
+                });
+            } else {
+                // Não está limpo → limpar
+                await api.post(`/chat/${chat.id}/cleanChat`);
+                setCleanChats(prev => ({ ...prev, [chat.id]: true }));
+            }
+
+        } catch (err) {
+            console.error("Erro ao atualizar limpeza", err);
+        } finally {
+            if (cleanChats[chat.id]) {
+                openChat(chat);
+            } else {
+                closeChat(chat.id);
+            }
+            setOpenMoreOptions(prev => ({ ...prev, [idOpt]: false }));
         }
     };
 
@@ -268,7 +389,7 @@ export default function ChatWidget() {
                 }
             };
 
-            ws.current.onmessage = (event) => {
+            ws.current.onmessage = async (event) => {
                 const data = JSON.parse(event.data);
 
                 if (data.type === "message") {
@@ -278,25 +399,12 @@ export default function ChatWidget() {
                     setChats(prev => {
                         const exists = prev.find(c => c.id === chatId);
 
-                        // AQUI ESTÁ O ERRO: em vez de adicionar 1, vamos recalcular.
-                        // setUnreadCounts(prevCounts => {
-                        //     if (!exists || !exists.open) {
-                        //         return { ...prevCounts, [chatId]: (prevCounts[chatId] || 0) + 1 };
-                        //     }
-                        //     return prevCounts;
-                        // });
-
                         let updated;
                         if (exists) {
                             updated = prev.map(c =>
                                 c.id === chatId ? { ...c, messages: [...(c.messages || []), msg] } : c
                             );
                         } else {
-                            // Se o chat não existe, não faz sentido adicionar 1 ao contador.
-                            // A busca de histórico já vai definir a contagem corretamente depois.
-                            // Para simplificar, a contagem de não lidas não deve ser atualizada aqui.
-                            // A contagem será atualizada pelo fetchUsersAndMessages ou pela API
-                            // do unread-count, o que for mais relevante no seu fluxo.
                             fetchUserAndMessages(chatId, msg).then(({ userData, history }) => {
                                 setChats(prevChats => {
                                     if (prevChats.find(c => c.id === chatId)) return prevChats;
@@ -312,7 +420,6 @@ export default function ChatWidget() {
                                     const updatedChats = [newChat, ...prevChats];
                                     updateVisibleChats(updatedChats);
 
-                                    // Recalcula o unreadCount para o novo chat
                                     setUnreadCounts(prevCounts => ({
                                         ...prevCounts,
                                         [chatId]: newChat.messages.filter(m => !m.read_at && m.sender_id !== user.id).length
@@ -379,6 +486,20 @@ export default function ChatWidget() {
 
                         // Retorne a nova lista de chats completa para atualizar o estado.
                         return updatedChats;
+                    });
+                }
+
+                if (data.type === "blocked") {
+                    const { chatId, blocked } = data.payload;
+
+                    setBlockChatsMsg(prev => {
+                        if (blocked) {
+                            return { ...prev, [chatId]: true };
+                        } else {
+                            const updated = { ...prev };
+                            delete updated[chatId];
+                            return updated;
+                        }
                     });
                 }
             };
@@ -448,7 +569,24 @@ export default function ChatWidget() {
             const res = await api.get(`/messages/${selectedUser.id}?currentUserId=${user.id}`);
             const history = res.data;
 
+            const resBlock = await api.get(`/chat/isBlocked/${selectedUser.id}`);
+            const isBlocked = resBlock.data.blocked;
             setChats(prev => {
+
+                try {
+                    if (isBlocked) {
+                        setBlockChatsMsg(prev => {
+                            if (prev[selectedUser.id]) return prev;
+                            return { ...prev, [selectedUser.id]: true };
+                        });
+                        blockChatsRef.current[selectedUser.id] = true;
+                    } else {
+                        blockChatsRef.current[selectedUser.id] = false;
+                    }
+                } catch (err) {
+                    console.error("Erro ao verificar bloqueio:", err);
+                }
+
                 let updated = prev.map(c => {
                     if (c.open && c.id !== selectedUser.id) {
                         // minimiza o chat que estava aberto
@@ -486,7 +624,9 @@ export default function ChatWidget() {
                     if (openAttachment === c.id) setOpenAttachment(null);
 
                     moreOptionsRefs.current[c.id]?.current?.(); // reset preview
-                    if (moreOptionsRefs === c.id) setOpenMoreOption(null);
+                    if (openMoreOptions[c.id]) {
+                        setOpenMoreOptions(prev => ({ ...prev, [`chat-${c.id}`]: false }));
+                    }
                 }
                 // Alterna o estado do chat clicado
                 return { ...c, open: !c.open };
@@ -498,7 +638,9 @@ export default function ChatWidget() {
                 if (openAttachment === c.id) setOpenAttachment(null);
 
                 moreOptionsRefs.current[c.id]?.current?.(); // reset preview
-                if (moreOptionsRefs === c.id) setOpenMoreOption(null);
+                if (openMoreOptions[c.id]) {
+                    setOpenMoreOptions(prev => ({ ...prev, [`chat-${c.id}`]: false }));
+                }
                 return { ...c, open: false };
             }
 
@@ -567,8 +709,24 @@ export default function ChatWidget() {
     const handleSendMessage = chatId => {
         const text = inputs[chatId];
         if (!text?.trim()) return;
-        const message = { senderId: user.id, receiverId: chatId, content: text, msgType: "text", metadata: {} };
-        if (ws.current && ws.current.readyState === WebSocket.OPEN) ws.current.send(JSON.stringify({ type: "message", payload: message }));
+
+        if (blockChatsRef.current[chatId]) {
+            setInputs(prev => ({ ...prev, [chatId]: "" }));
+            return;
+        }
+
+        const message = {
+            senderId: user.id,
+            receiverId: chatId,
+            content: text,
+            msgType: "text",
+            metadata: {}
+        };
+
+        if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+            ws.current.send(JSON.stringify({ type: "message", payload: message }));
+        }
+
         setInputs(prev => ({ ...prev, [chatId]: "" }));
     };
 
@@ -661,7 +819,16 @@ export default function ChatWidget() {
                     {open ? <FaChevronDown /> : <FaChevronUp />}
                 </div>
 
-                <div ref={chatPanelRef} className="chat-panel" style={{ maxHeight: `${panelHeight}px`, position: "relative", overflowX: "hidden" }}>
+                <div
+                    ref={chatPanelRef}
+                    className="chat-panel"
+                    style={{
+                        maxHeight: `${panelHeight}px`,
+                        position: "relative",
+                        overflowX: "hidden",
+                        overflow: "visible",
+                        zIndex: 3000,
+                    }}>
                     <span className="search"><FaSearch /></span>
                     <input type="text" placeholder="Pesquisar mensagens" className="chat-search" />
                     {users.some(u => archivedChats[u.id]) && (
@@ -686,26 +853,95 @@ export default function ChatWidget() {
                                 .filter(u => !archivedChats[u.id]).map(u => {
                                     const isPinned = fixedChats[u.id];
                                     return (
-                                        <div key={u.id} className="chat-user" onClick={() => openChat(u)}>
-                                            <span className={`status ${u.is_online ? "online" : "offline"}`} />
-                                            <span
-                                                className={`image ${typingStatus[u.id] ? "typing-effect" : ""}`}
-                                                style={{ backgroundImage: `url(${getAvatar(u.image)})` }}
-                                            />
-                                            <span style={{ textAlign: "left", display: "flex", flexDirection: "column", paddingTop: 10 }}>
-                                                <span>{u.name}</span>
-                                                <div className="typing-label">{typingStatus[u.id] ? "escrevendo..." : "\u00A0"}</div>
-                                                {isPinned && (
-                                                    <span style={{ position: "absolute", bottom: 10, right: 10}}>
-                                                        <PinRefreshedIcon size={20} color="#ccc" />
+                                        <div
+                                            key={u.id}
+                                            className={`chat-user ${!!openMoreOptions[`user-${u.id}`] && "active"}`}
+                                            onClick={() => openChat(u)}
+                                            style={{ zIndex: openMoreOptions[`user-${u.id}`] ? 1 : 0 }}
+                                        >
+                                            <span className={`icon-chevron-list ${!!openMoreOptions[`user-${u.id}`] && "active"}`}>
+                                                {/* <ArrowDropIcon size={20} color="#ccc" /> */}
+                                                <MoreOptionChat
+                                                    iconBotao="ArrowDropIcon"
+                                                    resetRef={moreOptionsRefs.current[u.id] = moreOptionsRefs.current[u.id] || React.createRef()}
+                                                    chatName={u.name}
+                                                    chatId={`user-${u.id}`}
+                                                    dadosUsuario={{
+                                                        type: "deslizar",
+                                                        name: u.name,
+                                                        email: u.email || "",
+                                                        image: u.image || ""
+                                                    }}
+                                                    previewDados={previewDados[u.id]}
+                                                    setPreviewDados={(file) => setPreviewDados(prev => ({ ...prev, [u.id]: file }))}
+                                                    chatBodyRef={chatBodyRefs.current[u.id]}
+                                                    isOpenOptions={!!openMoreOptions[`user-${u.id}`]}
+                                                    onToggleOptions={(open) => {
+                                                        setOpenMoreOptions(prev => ({ ...prev, [`user-${u.id}`]: !!open }));
+                                                    }}
+                                                    onOptionSelect={(option) => {
+                                                        switch (option) {
+                                                            case "fechar":
+                                                                closeChat(u.id);
+                                                                break;
+                                                            case "arquivar":
+                                                                handleArchiveToggle(u.id);
+                                                                setOpenMoreOptions(prev => ({ ...prev, [`user-${u.id}`]: false }));
+                                                                break;
+                                                            case "fixar":
+                                                                handleFixeToggle(u.id);
+                                                                setOpenMoreOptions(prev => ({ ...prev, [`user-${u.id}`]: false }));
+                                                                break;
+                                                            case "bloquear":
+                                                                handleBlockToggle(u.id);
+                                                                setOpenMoreOptions(prev => ({ ...prev, [`user-${u.id}`]: false }));
+                                                                break;
+                                                            case "apagar":
+                                                                handleCleanChat(u, `user-${u.id}`);
+                                                                break;
+                                                        }
+                                                    }}
+                                                    chatArquivado={{
+                                                        [`user-${u.id}`]: archivedChats[u.id],
+                                                    }}
+                                                    chatFixado={{
+                                                        [`user-${u.id}`]: fixedChats[u.id],
+                                                    }}
+                                                    chatBloqueado={{
+                                                        [`user-${u.id}`]: blockChats[u.id],
+                                                    }}
+                                                    chatLimpo={{
+                                                        [`user-${u.id}`]: cleanChats[u.id],
+                                                    }}
+                                                    fecharConversa={false}
+                                                />
+                                            </span>
+                                            <span className="box-user-list">
+                                                <span className={`status ${u.is_online ? "online" : "offline"}`} />
+                                                <span
+                                                    className={`image ${typingStatus[u.id] ? "typing-effect" : ""}`}
+                                                    style={{ backgroundImage: `url(${getAvatar(u.image)})` }}
+                                                />
+                                                <span style={{ textAlign: "left", display: "flex", flexDirection: "column", paddingTop: 10 }}>
+                                                    <span>{u.name}</span>
+                                                    <div className="typing-label">{typingStatus[u.id] ? "escrevendo..." : "\u00A0"}</div>
+                                                    {isPinned && (
+                                                        <span style={{ position: "absolute", bottom: 10, right: blockChats[u.id] ? 35 : 10 }}>
+                                                            <PinRefreshedIcon size={20} color="#ccc" />
+                                                        </span>
+                                                    )}
+                                                    {blockChats[u.id] && (
+                                                        <span style={{ position: "absolute", bottom: 10, right: 10 }}>
+                                                            <BlockRefreshedIcon size={20} color="#ccc" />
+                                                        </span>
+                                                    )}
+                                                </span>
+                                                {unreadCounts[u.id] > 0 && (
+                                                    <span className="unread-badge">
+                                                        <span>{unreadCounts[u.id]}</span>
                                                     </span>
                                                 )}
                                             </span>
-                                            {unreadCounts[u.id] > 0 && (
-                                                <span className="unread-badge">
-                                                    <span>{unreadCounts[u.id]}</span>
-                                                </span>
-                                            )}
                                         </div>
                                     );
                                 })
@@ -760,42 +996,67 @@ export default function ChatWidget() {
 
                 <div className="chat-windows">
                     {visibleChats.map(c => (
-                        <div key={c.id} className={`chat-window ${c.open ? "open" : "closed"}`} data-chat-id={c.id}>
+                        <div key={c.id} className={`chat-window ${c.open ? "open" : "closed"}`} data-chat-id={`chat-${c.id}`}>
                             <div className={`chat-header ${maximizarChat === c.id ? "max" : ""}`} onClick={(e) => { if (e.target.closest("button")) return; toggleChat(c.id); }}>
                                 <span className="image" style={{ backgroundImage: `url(${getAvatar(c.image)})` }} />
                                 <span>{c.name}</span>
                                 {/* <span className={`status ${c.is_online ? "online" : "offline"}`} /> */}
-                                <MoreOptionChat
-                                    resetRef={moreOptionsRefs.current[c.id] = moreOptionsRefs.current[c.id] || React.createRef()}
-                                    chatId={c.id}
-                                    dadosUsuario={{
-                                        name: c.name,
-                                        email: c.email || "",
-                                        image: c.image || ""
-                                    }}
-                                    previewDados={previewDados[c.id]}
-                                    setPreviewDados={(file) => setPreviewDados(prev => ({ ...prev, [c.id]: file }))}
-                                    chatBodyRef={chatBodyRefs.current[c.id]}
-                                    isOpenOptions={openMoreOption === c.id}
-                                    onToggleOptions={(open) => {
-                                        setOpenMoreOption(open ? c.id : null);
-                                    }}
-                                    onOptionSelect={(option) => {
-                                        switch (option) {
-                                            case "fechar":
-                                                closeChat(c.id);
-                                                break;
-                                            case "arquivar":
-                                                handleArchiveToggle(c.id);
-                                                break;
-                                            case "fixar":
-                                                handleFixeToggle(c.id);
-                                                break;
-                                        }
-                                    }}
-                                    chatArquivado={archivedChats}
-                                    chatFixado={fixedChats}
-                                />
+                                {c.open && (
+                                    <MoreOptionChat
+                                        iconBotao="MoreRefreshed"
+                                        resetRef={moreOptionsRefs.current[c.id] = moreOptionsRefs.current[c.id] || React.createRef()}
+                                        chatName={c.name}
+                                        chatId={`chat-${c.id}`}
+                                        dadosUsuario={{
+                                            type: "preview",
+                                            name: c.name,
+                                            email: c.email || "",
+                                            image: c.image || ""
+                                        }}
+                                        previewDados={previewDados[c.id]}
+                                        setPreviewDados={(file) => setPreviewDados(prev => ({ ...prev, [c.id]: file }))}
+                                        chatBodyRef={chatBodyRefs.current[c.id]}
+                                        isOpenOptions={!!openMoreOptions[`chat-${c.id}`]}
+                                        onToggleOptions={(open) => {
+                                            setOpenMoreOptions(prev => ({ ...prev, [`chat-${c.id}`]: !!open }));
+                                        }}
+                                        onOptionSelect={(option) => {
+                                            switch (option) {
+                                                case "fechar":
+                                                    closeChat(c.id);
+                                                    break;
+                                                case "arquivar":
+                                                    handleArchiveToggle(c.id);
+                                                    setOpenMoreOptions(prev => ({ ...prev, [`chat-${c.id}`]: false }));
+                                                    break;
+                                                case "fixar":
+                                                    handleFixeToggle(c.id);
+                                                    setOpenMoreOptions(prev => ({ ...prev, [`chat-${c.id}`]: false }));
+                                                    break;
+                                                case "bloquear":
+                                                    handleBlockToggle(c.id);
+                                                    setOpenMoreOptions(prev => ({ ...prev, [`chat-${c.id}`]: false }));
+                                                    break;
+                                                case "apagar":
+                                                    handleCleanChat(c, `user-${c.id}`);
+                                                    break;
+                                            }
+                                        }}
+                                        chatArquivado={{
+                                            [`chat-${c.id}`]: archivedChats[c.id],
+                                        }}
+                                        chatFixado={{
+                                            [`chat-${c.id}`]: fixedChats[c.id],
+                                        }}
+                                        chatBloqueado={{
+                                            [`chat-${c.id}`]: blockChats[c.id],
+                                        }}
+                                        chatLimpo={{
+                                            [`chat-${c.id}`]: cleanChats[c.id],
+                                        }}
+                                        fecharConversa={true}
+                                    />
+                                )}
                                 {c.open && (
                                     <button onClick={() => maxChat(c.id)}>
                                         {maximizarChat === c.id ? (
@@ -806,7 +1067,12 @@ export default function ChatWidget() {
 
                                     </button>
                                 )}
-                                <button onClick={() => closeChat(c.id)}><CloseRoundedIcon size={24} color="#0A0A0A" /></button>
+                                <button
+                                    onClick={() => closeChat(c.id)}
+                                    style={{ marginLeft: c.open ? undefined : "auto" }}
+                                >
+                                    <CloseRoundedIcon size={24} color="#0A0A0A" />
+                                </button>
                             </div>
 
                             <div className={`chat-container ${maximizarChat === c.id ? "max" : ""}`}>
@@ -827,6 +1093,18 @@ export default function ChatWidget() {
                                                     />
                                                 );
                                             })}
+                                            {/* Exibe apenas UMA vez no final */}
+                                            {blockChats[c.id] && (
+                                                <div className="chat-message-row">
+                                                    <span className="block-message me">Você bloqueou este usuário e não pode trocar mensagens</span>
+                                                </div>
+                                            )}
+
+                                            {blockChatsMsg[c.id] && (
+                                                <div className="chat-message-row">
+                                                    <span className="block-message">Você foi bloqueado por este usuário e não pode trocar mensagens</span>
+                                                </div>
+                                            )}
                                             {typingStatus[c.id] && (
                                                 <div className="chat-message-row other">
                                                     <div className="chat-message-bubble"><TypingIndicator /></div>
@@ -836,88 +1114,70 @@ export default function ChatWidget() {
                                     </div>
                                 </div>
                                 {/* ref={el => (chatBodyRefs.current[c.id] = el)} */}
-                                <div className="chat-footer">
-                                    <div className="container-chat">
-                                        <textarea
-                                            ref={el => (textareaRefs.current[c.id] = el)}
-                                            placeholder="Digite sua mensagem..."
-                                            className="chat-message"
-                                            value={inputs[c.id] || ""}
-                                            onChange={(e) => handleInputChange(c.id, e.target.value)}
-                                        />
+                                {!blockChats[c.id] && !blockChatsMsg[c.id] && (
+                                    <div className="chat-footer">
+                                        <div className="container-chat">
+                                            <textarea
+                                                ref={el => (textareaRefs.current[c.id] = el)}
+                                                placeholder="Digite sua mensagem..."
+                                                className="chat-message"
+                                                value={inputs[c.id] || ""}
+                                                onChange={(e) => handleInputChange(c.id, e.target.value)}
+                                            />
 
-                                        <ChatAttachment
-                                            resetRef={attachmentRefs.current[c.id] = attachmentRefs.current[c.id] || React.createRef()}
-                                            chatId={c.id}
-                                            previewFile={previewFiles[c.id]}
-                                            setPreviewFile={(file) => setPreviewFiles(prev => ({ ...prev, [c.id]: file }))}
-                                            chatBodyRef={chatBodyRefs.current[c.id]}
-                                            isOpenAttachment={openAttachment === c.id}
-                                            onToggleAttachment={(open, payload) => {
-                                                setOpenAttachment(open ? c.id : null);
+                                            <ChatAttachment
+                                                resetRef={attachmentRefs.current[c.id] = attachmentRefs.current[c.id] || React.createRef()}
+                                                chatId={c.id}
+                                                previewFile={previewFiles[c.id]}
+                                                setPreviewFile={(file) => setPreviewFiles(prev => ({ ...prev, [c.id]: file }))}
+                                                chatBodyRef={chatBodyRefs.current[c.id]}
+                                                isOpenAttachment={openAttachment === c.id}
+                                                onToggleAttachment={(open, payload) => {
+                                                    setOpenAttachment(open ? c.id : null);
 
-                                                // ajusta para enviar qualquer arquivo, mas mantém envio automático para imagens
-                                                if (payload) {
-                                                    // const msgType = payload.type === "file" && payload.metadata?.fileName?.match(/\.(jpg|jpeg|png|gif)$/i)
-                                                    //     ? "image"
-                                                    //     : payload.type;
+                                                    // ajusta para enviar qualquer arquivo, mas mantém envio automático para imagens
+                                                    if (payload) {
+                                                        // const msgType = payload.type === "file" && payload.metadata?.fileName?.match(/\.(jpg|jpeg|png|gif)$/i)
+                                                        //     ? "image"
+                                                        //     : payload.type;
 
-                                                    ws.current.send(JSON.stringify({
-                                                        type: "message",
-                                                        payload: {
-                                                            senderId: user.id,
-                                                            receiverId: c.id,
-                                                            content: payload.content,
-                                                            msgType: payload.type,
-                                                            metadata: payload.metadata,
-                                                        },
-                                                    }));
-                                                }
-                                            }}
-                                        />
-                                        {/* <ChatAttachment
-                                            isOpenAttachment={openAttachment === c.id}
-                                            onToggleAttachment={(open, payload) => {
-                                                setOpenAttachment(open ? c.id : null);
-
-                                                if (payload?.type === "image") {
-                                                    // envia pelo WS a nova mensagem
-                                                    ws.current.send(JSON.stringify({
-                                                        type: "message",
-                                                        payload: {
-                                                            senderId: user.id,
-                                                            receiverId: c.id,
-                                                            content: payload.content, // "[image]" ou vazio
-                                                            msgType: payload.type,    // "image"
-                                                            metadata: payload.metadata // { fileName: "xxxx.jpg" }
-                                                        }
-                                                    }));
-                                                }
-                                            }}
-                                        /> */}
-                                        <EmojiDropdown
-                                            chatIdEmoji={c.id}
-                                            isOpenEmoji={openEmoji === c.id}
-                                            onToggleEmoji={(open) => setOpenEmoji(open ? c.id : null)}
-                                            onSelectEmoji={handleEmojiSelect}
-                                        />
-                                        {inputs[c.id]?.trim().length > 0 ? (
-                                            <span
-                                                className="options-footer options-send"
-                                                onClick={() => handleSendMessage(c.id)}
-                                            >
-                                                <SendFilledIcon size={24} color="#ffffff" />
-                                            </span>
-                                        ) : (
-                                            <span
-                                                className="options-footer options-audio"
-                                                onClick={() => handleSendMessage(c.id)}
-                                            >
-                                                <MicOutlined size={24} />
-                                            </span>
-                                        )}
+                                                        ws.current.send(JSON.stringify({
+                                                            type: "message",
+                                                            payload: {
+                                                                senderId: user.id,
+                                                                receiverId: c.id,
+                                                                content: payload.content,
+                                                                msgType: payload.type,
+                                                                metadata: payload.metadata,
+                                                            },
+                                                        }));
+                                                    }
+                                                }}
+                                            />
+                                            <EmojiDropdown
+                                                chatIdEmoji={c.id}
+                                                isOpenEmoji={openEmoji === c.id}
+                                                onToggleEmoji={(open) => setOpenEmoji(open ? c.id : null)}
+                                                onSelectEmoji={handleEmojiSelect}
+                                            />
+                                            {inputs[c.id]?.trim().length > 0 ? (
+                                                <span
+                                                    className="options-footer options-send"
+                                                    onClick={() => handleSendMessage(c.id)}
+                                                >
+                                                    <SendFilledIcon size={24} color="#ffffff" />
+                                                </span>
+                                            ) : (
+                                                <span
+                                                    className="options-footer options-audio"
+                                                    onClick={() => handleSendMessage(c.id)}
+                                                >
+                                                    <MicOutlined size={24} />
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
                         </div>
                     ))}

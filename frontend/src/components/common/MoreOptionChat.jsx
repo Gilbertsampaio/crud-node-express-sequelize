@@ -2,23 +2,33 @@ import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import InfoRefreshed from "./icons/InfoRefreshed";
 import CloseCircle from "./icons/CloseCircle";
-import ClearCircleRefreshed from "./icons/ClearCircleRefreshed";
+import UnDeleteRefreshed from "./icons/UnDeleteRefreshed";
 import DeleteRefreshed from "./icons/DeleteRefreshed";
-import MoreRefreshed from "./icons/MoreRefreshed";
 import CloseRoundedIcon from "./icons/CloseRoundedIcon";
 import ArchiveRefreshedIcon from "./icons/ArchiveRefreshedIcon";
 import BlockRefreshedIcon from "./icons/BlockRefreshedIcon";
 import PinRefreshedIcon from "./icons/PinRefreshedIcon";
 import UnpinRefreshedIcon from "./icons/UnpinRefreshedIcon";
+import MoreRefreshed from "./icons/MoreRefreshed";
+import ArrowDropIcon from "./icons/ArrowDropIcon";
+import { FaTrashRestoreAlt } from "react-icons/fa";
 
+const icons = {
+    MoreRefreshed,
+    ArrowDropIcon,
+};
 
 import ImageModal from "./ImageModal";
+import ConfirmModal from "./ConfirmModal";
+
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5173";
 const IMAGEM_PADRAO = `${API_URL}/images/news.png`;
 
 import "./ChatAttachment.css";
 
 export default function ChatAttachment({
+    iconBotao,
+    chatName,
     chatId,
     dadosUsuario,
     isOpenOptions,
@@ -28,7 +38,10 @@ export default function ChatAttachment({
     resetRef,
     onOptionSelect,
     chatArquivado,
-    chatFixado
+    chatFixado,
+    chatBloqueado,
+    chatLimpo,
+    fecharConversa
 }) {
     const wrapperRef = useRef(null);
     const [selectedOption, setSelectedOption] = useState(null);
@@ -36,8 +49,18 @@ export default function ChatAttachment({
     const [selectedMedia, setSelectedMedia] = useState(null);
     const [labelArquivado, setLabelArquivado] = useState("Arquivar");
     const [labelFixado, setLabelFixado] = useState("Fixar");
-    const closeImageModal = () => setSelectedMedia(null);
+    const [labelBloqueado, setLabelBloqueado] = useState("Bloquear");
+    // const [labelLimpo, setLabelLimpo] = useState("Limpar");
+    const [labelApagado, setLabelApagado] = useState("Apagar conversas");
+    const [showModal, setShowModal] = useState(false);
+    const [tituloConfirma, setTituloConfirma] = useState(null);
+    const [msgConfirma, setMsgConfirma] = useState(null);
+    const [openDirection, setOpenDirection] = useState("down");
 
+    const IconB = icons[iconBotao];
+
+
+    const closeImageModal = () => setSelectedMedia(null);
     const openImageModal = (url, type) => setSelectedMedia({ url, type });
 
     const resetarDados = React.useCallback(() => {
@@ -46,9 +69,26 @@ export default function ChatAttachment({
     }, [setPreviewDados]);
 
     useEffect(() => {
+        if (isOpenOptions && wrapperRef.current) {
+            const rect = wrapperRef.current.getBoundingClientRect();
+            const spaceBottom = window.innerHeight - rect.bottom;
+            const spaceTop = rect.top;
+
+            if (spaceBottom < 250 && spaceTop > spaceBottom) {
+                setOpenDirection("up");
+            } else {
+                setOpenDirection("down");
+            }
+        }
+    }, [isOpenOptions]);
+
+    useEffect(() => {
         setLabelArquivado(chatArquivado[chatId] ? "Desarquivar" : "Arquivar");
-        setLabelFixado(chatFixado[chatId] ? "Desafixar conversa" : "Fixar")
-    }, [chatArquivado, chatFixado, chatId]);
+        setLabelFixado(chatFixado[chatId] ? "Desafixar conversa" : "Fixar");
+        setLabelBloqueado(chatBloqueado[chatId] ? "Desbloquear" : "Bloquear");
+        // setLabelLimpo(chatLimpo[chatId] ? "Deslimpar" : "Limpar");
+        setLabelApagado(chatLimpo[chatId] ? "Restaurar conversas" : "Apagar conversas");
+    }, [chatArquivado, chatFixado, chatBloqueado, chatLimpo, chatId]);
 
     useEffect(() => {
         if (resetRef) resetRef.current = resetarDados;
@@ -79,14 +119,14 @@ export default function ChatAttachment({
             onClick: () => chamaFuncao("dados"),
             class: ""
         },
-        {
+        ...(fecharConversa ? [{
             id: 2,
             label: "Fechar conversa",
             icon: CloseCircle,
             color: "rgba(0, 0, 0, .6)",
             onClick: () => chamaFuncao("fechar"),
             class: ""
-        },
+        }] : []),
         {
             id: 3,
             label: `${labelFixado}`,
@@ -109,24 +149,24 @@ export default function ChatAttachment({
         },
         {
             id: 6,
-            label: "Bloquear",
-            icon: BlockRefreshedIcon,
+            label: labelBloqueado,
+            icon: chatBloqueado[chatId] ? BlockRefreshedIcon : BlockRefreshedIcon,
             color: "rgba(0, 0, 0, .6)",
             onClick: () => chamaFuncao("bloquear"),
-            class: "redHover"
+            class: chatBloqueado[chatId] ? "" : "redHover"
         },
-        {
-            id: 7,
-            label: "Limpar conversa",
-            icon: ClearCircleRefreshed,
-            color: "rgba(0, 0, 0, .6)",
-            onClick: () => chamaFuncao("limpar"),
-            class: "redHover"
-        },
+        // {
+        //     id: 7,
+        //     label: `${labelLimpo} conversa`,
+        //     icon: ClearCircleRefreshed,
+        //     color: "rgba(0, 0, 0, .6)",
+        //     onClick: () => chamaFuncao("limpar"),
+        //     class: "redHover"
+        // },
         {
             id: 8,
-            label: "Apagar conversa",
-            icon: DeleteRefreshed,
+            label: labelApagado,
+            icon: chatLimpo[chatId] ? UnDeleteRefreshed : DeleteRefreshed,
             color: "rgba(0, 0, 0, .6)",
             onClick: () => chamaFuncao("apagar"),
             class: "redHover"
@@ -143,6 +183,7 @@ export default function ChatAttachment({
 
             case "fechar":
                 if (onOptionSelect) onOptionSelect(optionLabel);
+                onToggleOptions(false);
                 break;
 
             case "arquivar":
@@ -153,17 +194,42 @@ export default function ChatAttachment({
                 if (onOptionSelect) onOptionSelect(optionLabel);
                 break;
 
+            case "bloquear":
+                if (onOptionSelect) setShowModal(true);
+                setTituloConfirma(`Deseja ${chatBloqueado[chatId] ? "desbloquear" : "bloquear"} ${getFirstName(chatName)}`);
+                setMsgConfirma(`${chatBloqueado[chatId] ? "A pessoa voltará a enviar mensagens para você. Ela saberá que foi desbloqueada" : "A pessoa não poderá mais enviar mensagens para você. Ela saberá que foi bloqueada"}.`);
+                break;
+
             case "limpar":
-                console.log("Limpar conversa");
+                if (onOptionSelect) setShowModal(true);
+                setTituloConfirma("Deseja limpar esta conversa?");
+                setMsgConfirma("A conversa ficará vazia, mas ficará na sua lista de conversas.");
                 break;
 
             case "apagar":
-                console.log("Apagar conversa");
+                if (onOptionSelect) setShowModal(true);
+                setTituloConfirma(`Deseja ${chatLimpo[chatId] ? "restaurar" : "apagar"} a conversa com ${getFirstName(chatName)}?`);
+                setMsgConfirma(`As mensagens serão ${chatLimpo[chatId] ? "restauradas" : "removidas"}.`);
                 break;
 
             default:
                 break;
         }
+    }
+
+    const confirmAcao = async () => {
+        onOptionSelect(selectedOption)
+        setShowModal(false);
+    };
+
+    const cancelAcao = () => {
+        onOptionSelect(null);
+        setShowModal(false);
+    };
+
+    function getFirstName(fullName) {
+        const names = fullName.split(" ");
+        return names[0];
     }
 
     // Função que carrega os dados do usuário
@@ -174,9 +240,16 @@ export default function ChatAttachment({
             name: dadosUsuario.name,
             email: dadosUsuario.email,
             image: dadosUsuario.image,
+            type: dadosUsuario.type,
         };
-        setUserData(fakeUser);
-        setPreviewDados({ type: "text/plain" });
+
+        if (dadosUsuario.type === "preview") {
+            setUserData(fakeUser);
+            setPreviewDados({ type: "text/plain" });
+            console.log(fakeUser)
+        } else {
+            console.log(fakeUser)
+        }
         onToggleOptions(false);
     }
 
@@ -191,7 +264,7 @@ export default function ChatAttachment({
                 >
                     <img
                         src={getAvatar(userData?.image)}
-                        alt={userData.name}
+                        alt={userData?.name}
                         className="img-preview"
                         style={{
                             maxWidth: "100%", marginBottom: 0, height: "70%", marginTop: "20px"
@@ -249,20 +322,22 @@ export default function ChatAttachment({
                 position: "relative",
                 whiteSpace: "nowrap",
             }}
+            onClick={(e) => e.stopPropagation()}
         >
             <button
                 type="button"
                 aria-expanded={isOpenOptions}
                 className={`${isOpenOptions ? "active" : ""}`}
                 onClick={() => onToggleOptions(!isOpenOptions)}
+                style={{ zIndex: 1 }}
             >
-                <MoreRefreshed />
+                <IconB />
             </button>
 
             <div
-                className={`attachment-dropdown header ${isOpenOptions ? "open" : "closed"
-                    }`}
+                className={`attachment-dropdown header open-${openDirection} ${isOpenOptions ? "open" : "closed"} `} /*block*/
                 onClick={(e) => e.stopPropagation()}
+                style={{ zIndex: 2 }}
             >
                 {options.map((opt, index) => {
                     const Icon = opt.icon;
@@ -314,6 +389,14 @@ export default function ChatAttachment({
                 imageUrl={selectedMedia?.url}
                 type={selectedMedia?.type}
                 onClose={closeImageModal}
+            />
+
+            <ConfirmModal
+                show={showModal}
+                title={tituloConfirma}
+                message={msgConfirma}
+                onConfirm={confirmAcao}
+                onCancel={cancelAcao}
             />
         </div>
     );

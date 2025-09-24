@@ -1,23 +1,63 @@
 const express = require("express");
 const router = express.Router();
 const { Op } = require("sequelize");
-const Message = require("../models/message"); // já importado corretamente
+const Message = require("../models/message");
+const CleanChat = require("../models/chatClean");
 
 // Buscar histórico entre 2 usuários
+// router.get("/:userId", async (req, res) => {
+//   const { userId } = req.params;
+//   const { currentUserId } = req.query;
+
+//   try {
+//     const messages = await Message.findAll({
+//       where: {
+//         [Op.or]: [
+//           { sender_id: currentUserId, receiver_id: userId },
+//           { sender_id: userId, receiver_id: currentUserId },
+//         ],
+//       },
+//       order: [["created_at", "ASC"]],
+//     });
+//     res.json(messages);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: "Erro ao buscar mensagens" });
+//   }
+// });
+
 router.get("/:userId", async (req, res) => {
   const { userId } = req.params;
   const { currentUserId } = req.query;
 
   try {
-    const messages = await Message.findAll({
+    const cleanChatRecord = await CleanChat.findOne({
       where: {
-        [Op.or]: [
-          { sender_id: currentUserId, receiver_id: userId },
-          { sender_id: userId, receiver_id: currentUserId },
-        ],
+        user_id: currentUserId,
+        chat_id: userId,
       },
+    });
+
+    const cleanedAt = cleanChatRecord ? cleanChatRecord.cleaned_at : null;
+
+    const whereCondition = {
+      [Op.or]: [
+        { sender_id: currentUserId, receiver_id: userId },
+        { sender_id: userId, receiver_id: currentUserId },
+      ],
+    };
+
+    if (cleanedAt) {
+      whereCondition.created_at = {
+        [Op.gt]: cleanedAt,
+      };
+    }
+
+    const messages = await Message.findAll({
+      where: whereCondition,
       order: [["created_at", "ASC"]],
     });
+
     res.json(messages);
   } catch (err) {
     console.error(err);

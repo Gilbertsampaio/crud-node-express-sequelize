@@ -80,27 +80,25 @@
   width: 100%;
 }
 
-/* Chrome, Edge e Safari */
 .comment-list::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-  /* evita barra horizontal grossa */
+  width: 10px;
+  height: 10px;
 }
 
-.comment-list::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.comment-list::-webkit-scrollbar-thumb {
-  background-color: #bbb;
-  border-radius: 4px;
-}
-
-/* Remove as setas (bot?es) definitivamente */
 .comment-list::-webkit-scrollbar-button {
-  width: 0 !important;
-  height: 0 !important;
-  display: none !important;
+  background-color: none !important;
+  width: 0px;
+  height: 0px;
+}
+
+.comment-list::-webkit-scrollbar-thumb:vertical {
+  height: 5px;
+  background-color: #BFBFBF;
+  -webkit-border-radius: 4px;
+  border-left: 3px solid #ffffff;
+  border-right: 3px solid #ffffff;
+  border-top: 1px solid #ffffff;
+  border-bottom: 1px solid #ffffff;
 }
 
 .comment-item {

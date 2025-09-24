@@ -69,32 +69,31 @@
   color: #444;
   max-height: 100px;
   overflow-y: auto;
-
-  /* Firefox */
-  scrollbar-width: thin;
-  scrollbar-color: #bbb transparent;
 }
 
-/* Chrome, Edge e Safari */
 .novidade-descricao::-webkit-scrollbar {
-  width: 6px;
-  height: 6px; /* evita barra horizontal grossa */
+  width: 10px;
+  height: 10px;
 }
 
-.novidade-descricao::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.novidade-descricao::-webkit-scrollbar-thumb {
-  background-color: #bbb;
-  border-radius: 4px;
-}
-
-/* Remove as setas (bot?es) definitivamente */
 .novidade-descricao::-webkit-scrollbar-button {
-  width: 0 !important;
-  height: 0 !important;
-  display: none !important;
+  background-color: none !important;
+  width: 5px;
+  height: 5px;
+}
+
+.novidade-descricao::-webkit-scrollbar-thumb:vertical {
+  height: 5px;
+  background-color: #BFBFBF;
+  -webkit-border-radius: 4px;
+  border-left: 3px solid #ffffff;
+  border-right: 3px solid #ffffff;
+  border-top: 1px solid #ffffff;
+  border-bottom: 1px solid #ffffff;
+}
+
+.novidade-descricao::-webkit-scrollbar-thumb:vertical:hover {
+  background-color: #808080 !important;
 }
 
 /* Animação */

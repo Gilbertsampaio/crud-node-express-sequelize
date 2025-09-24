@@ -40,9 +40,40 @@
 
 .attachment-dropdown.header {
   transform-origin: top right;
-  top: 60px;
+  top: 55px;
   left: inherit;
   right: calc(30% - 10px);
+}
+
+.chat-header:not(.max) .attachment-dropdown.header.open.block {
+  overflow-x: hidden;
+  overflow-y: auto;
+  height: 288px;
+}
+
+.attachment-dropdown.header.open.block::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.attachment-dropdown.header.open.block::-webkit-scrollbar-button {
+  background-color: none;
+  width: 15px;
+  height: 15px;
+}
+
+.attachment-dropdown.header.open.block::-webkit-scrollbar-thumb:vertical {
+  height: 5px;
+  background-color: #BFBFBF;
+  -webkit-border-radius: 4px;
+  border-left: 3px solid #ffffff;
+  border-right: 3px solid #ffffff;
+  border-top: 1px solid #ffffff;
+  border-bottom: 1px solid #ffffff;
+}
+
+.attachment-dropdown.header.open.block::-webkit-scrollbar-thumb:vertical:hover {
+  background-color: #808080;
 }
 
 .chat-header.max .attachment-dropdown.header {
@@ -64,7 +95,7 @@
 
 /* fechado (classe reversed) */
 .attachment-dropdown.closed {
-  transform: scale(0.85) translateY(6px);
+  transform: scale(0.50) translateY(6px);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -75,7 +106,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 14px;
+  padding: 9px 14px;
   cursor: pointer;
   user-select: none;
   background: transparent;

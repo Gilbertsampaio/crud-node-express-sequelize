@@ -61,33 +61,34 @@ wss.on('connection', (ws) => {
           break;
         }
 
-        case 'message': {
-          const { senderId, receiverId, content, msgType = 'text', metadata = {} } = data.payload || {};
+        case 'message':
+          {
+            const { senderId, receiverId, content, msgType = 'text', metadata = {} } = data.payload || {};
 
-          if (!senderId || !receiverId || !content) {
-            ws.send(JSON.stringify({ type: 'error', message: 'Mensagem inválida' }));
-            return;
+            if (!senderId || !receiverId || !content) {
+              ws.send(JSON.stringify({ type: 'error', message: 'Mensagem inválida' }));
+              return;
+            }
+
+            const Message = require('./models/message');
+            const savedMessage = await Message.create({
+              sender_id: senderId,
+              receiver_id: receiverId,
+              type: msgType,
+              content,
+              metadata
+            });
+
+            // Envia para o destinatário se estiver online
+            const receiverWs = connectedUsers.get(receiverId);
+            if (receiverWs && receiverWs.readyState === WebSocket.OPEN) {
+              receiverWs.send(JSON.stringify({ type: 'message', message: savedMessage }));
+            }
+
+            // Confirma para o remetente
+            ws.send(JSON.stringify({ type: 'message', message: savedMessage }));
+            break;
           }
-
-          const Message = require('./models/message');
-          const savedMessage = await Message.create({
-            sender_id: senderId,
-            receiver_id: receiverId,
-            type: msgType,
-            content,
-            metadata
-          });
-
-          // Envia para o destinatário se estiver online
-          const receiverWs = connectedUsers.get(receiverId);
-          if (receiverWs && receiverWs.readyState === WebSocket.OPEN) {
-            receiverWs.send(JSON.stringify({ type: 'message', message: savedMessage }));
-          }
-
-          // Confirma para o remetente
-          ws.send(JSON.stringify({ type: 'message', message: savedMessage }));
-          break;
-        }
 
         case 'typing':
           {
@@ -102,51 +103,76 @@ wss.on('connection', (ws) => {
           }
           break;
 
-        case 'read': {
-          const { chatId, userId, messageIds } = data.payload;
-          if (!Array.isArray(messageIds) || messageIds.length === 0) break;
+        case 'read':
+          {
+            const { chatId, userId, messageIds } = data.payload;
+            if (!Array.isArray(messageIds) || messageIds.length === 0) break;
 
-          const Message = require('./models/message');
+            const Message = require('./models/message');
 
-          try {
-            // Marca mensagens como lidas (somente para o receiver)
-            await Message.update(
-              { read_at: new Date() },
-              { where: { id: messageIds, receiver_id: userId } }
-            );
+            try {
+              // Marca mensagens como lidas (somente para o receiver)
+              await Message.update(
+                { read_at: new Date() },
+                { where: { id: messageIds, receiver_id: userId } }
+              );
 
-            // Busca mensagens atualizadas
-            const updated = await Message.findAll({ where: { id: messageIds } });
+              // Busca mensagens atualizadas
+              const updated = await Message.findAll({ where: { id: messageIds } });
 
-            // Notifica cada remetente sobre a leitura
-            for (const msg of updated) {
-              const senderWs = connectedUsers.get(msg.sender_id);
+              // Notifica cada remetente sobre a leitura
+              for (const msg of updated) {
+                const senderWs = connectedUsers.get(msg.sender_id);
 
-              // CORREÇÃO: chatId correto para o remetente é o id do usuário que recebeu a leitura
-              const chatIdForSender = msg.receiver_id; // o front usa esse id para encontrar o chat
+                // CORREÇÃO: chatId correto para o remetente é o id do usuário que recebeu a leitura
+                const chatIdForSender = msg.receiver_id; // o front usa esse id para encontrar o chat
 
-              const payload = {
-                type: 'read',
-                payload: {
-                  chatId: chatIdForSender,       // id do chat que o remetente vê
-                  messageIds: [msg.id],          // agora é array
-                  read_at: msg.read_at || new Date().toISOString()
+                const payload = {
+                  type: 'read',
+                  payload: {
+                    chatId: chatIdForSender,       // id do chat que o remetente vê
+                    messageIds: [msg.id],          // agora é array
+                    read_at: msg.read_at || new Date().toISOString()
+                  }
+                };
+
+                if (senderWs && senderWs.readyState === WebSocket.OPEN) {
+                  senderWs.send(JSON.stringify(payload));
                 }
-              };
-
-              if (senderWs && senderWs.readyState === WebSocket.OPEN) {
-                senderWs.send(JSON.stringify(payload));
               }
-            }
 
-            // Opcional: confirma para quem marcou como lido
-            if (ws.readyState === WebSocket.OPEN) {
-              ws.send(JSON.stringify({ type: 'read-ack', payload: { chatId, messageIds } }));
+              // Opcional: confirma para quem marcou como lido
+              if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'read-ack', payload: { chatId, messageIds } }));
+              }
+            } catch (err) {
+              console.error('[WS read] erro:', err);
             }
-          } catch (err) {
-            console.error('[WS read] erro:', err);
           }
-        } break;
+          break;
+
+        case 'blocked': {
+          const { chatId, blockedValue, userId } = data.payload;
+          // 🔹 userId = quem fez a ação de bloquear/desbloquear
+          // 🔹 chatId = alvo do bloqueio
+
+          const receiverSocket = connectedUsers.get(chatId);
+
+          // 🔹 Informa ao usuário que foi bloqueado/desbloqueado
+          if (receiverSocket && receiverSocket.readyState === WebSocket.OPEN) {
+            receiverSocket.send(JSON.stringify({
+              type: "blocked",
+              payload: { chatId: userId, blocked: blockedValue }
+            }));
+          }
+
+          // 🔹 Também informa ao usuário que fez a ação (para atualizar UI local)
+          // ws.send(JSON.stringify({
+          //   type: "blocked",
+          //   payload: { chatId, blocked: blockedValue }
+          // }));
+        }
+          break;
 
         default:
           ws.send(JSON.stringify({ type: 'error', message: 'Tipo de evento não reconhecido' }));

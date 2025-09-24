@@ -21,7 +21,7 @@ export default function EmojiDropdown({ chatIdEmoji, onSelectEmoji, isOpenEmoji,
   // Seleção de emoji
   const handleEmojiSelect = (emoji) => {
     onSelectEmoji(chatIdEmoji, emoji.native);
-    onToggleEmoji(false);
+    // onToggleEmoji(false);
   };
 
   return (
