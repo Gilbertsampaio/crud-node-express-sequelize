@@ -906,7 +906,7 @@
 .chat-user .icon-chevron-list .chat-attachment .attachment-dropdown.open-up {
   bottom: 30px;
   top: auto;
-  right: 2%;
+  right: 20px;
   transform-origin: bottom right;
   z-index: 99999;
 }
