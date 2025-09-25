@@ -798,6 +798,8 @@ export default function ChatWidget() {
         return bPinned - aPinned;
     });
 
+    const hasNonArchivedUsers = sortedUsers.some(u => u.id && !archivedChats[u.id] && u.id !== user.id);
+
     return (
         <>
             <div className="chat-widget">
@@ -844,9 +846,13 @@ export default function ChatWidget() {
                             </div>
                         </div>
                     )}
-                    <div className="chat-users-list">
-                        {error ? (
-                            <div>{error}</div>
+                    <span className="chat-users-wrapper"></span>
+                    <div
+                        className={`archived-users chat-users-list ${!hasNonArchivedUsers && "body-usernot-arquivo"}`}>
+                        {!hasNonArchivedUsers ? (
+                            <div style={{ padding: "1rem", color: "#888", textAlign: "center" }}>
+                                Nenhuma conversa desarquivada
+                            </div>
                         ) : (
                             sortedUsers
                                 .filter(u => u.id !== user.id)
@@ -859,7 +865,7 @@ export default function ChatWidget() {
                                             onClick={() => openChat(u)}
                                             style={{ zIndex: openMoreOptions[`user-${u.id}`] ? 1 : 0 }}
                                         >
-                                            <span className={`icon-chevron-list ${!!openMoreOptions[`user-${u.id}`] && "active"}`}>
+                                            <span className={`icon-chevron-list ${!!openMoreOptions[`user-${u.id}`] && "active"}`} style={{ maxHeight: 350 }}>
                                                 {/* <ArrowDropIcon size={20} color="#ccc" /> */}
                                                 <MoreOptionChat
                                                     iconBotao="ArrowDropIcon"
@@ -958,7 +964,7 @@ export default function ChatWidget() {
                                 <ArrowIcon size={22} color="#333" direction="right" />
                             </button>
                         </div>
-                        <div className={`archived-users ${users.filter((u) => archivedChats[u.id]).length === 0 && "body-usernot-arquivo"}`}>
+                        <div className={`archived-users chat-users-list ${users.filter((u) => archivedChats[u.id]).length === 0 && "body-usernot-arquivo"}`}>
                             {users.filter((u) => archivedChats[u.id]).length === 0 ? (
                                 <div style={{ padding: "1rem", color: "#888", textAlign: "center" }}>
                                     Nenhuma conversa arquivada
@@ -969,25 +975,85 @@ export default function ChatWidget() {
                                     .map((u) => (
                                         <div
                                             key={u.id}
-                                            className="chat-user"
+                                            className={`chat-user ${!!openMoreOptions[`user-${u.id}`] && "active"}`}
                                             onClick={() => openChat(u)}
+                                            style={{ zIndex: openMoreOptions[`user-${u.id}`] ? 1 : 0 }}
                                         >
-                                            <span
-                                                className="image"
-                                                style={{
-                                                    backgroundImage: `url(${getAvatar(u.image)})`,
-                                                }}
-                                            />
-                                            <span
-                                                style={{
-                                                    textAlign: "left",
-                                                    display: "flex",
-                                                    flexDirection: "column",
-                                                    paddingTop: 10,
-                                                }}
-                                            >
-                                                <span>{u.name}</span>
+                                            <span className={`icon-chevron-list ${!!openMoreOptions[`user-${u.id}`] && "active"}`}>
+                                                {/* <ArrowDropIcon size={20} color="#ccc" /> */}
+                                                <MoreOptionChat
+                                                    iconBotao="ArrowDropIcon"
+                                                    resetRef={moreOptionsRefs.current[u.id] = moreOptionsRefs.current[u.id] || React.createRef()}
+                                                    chatName={u.name}
+                                                    chatId={`user-${u.id}`}
+                                                    dadosUsuario={{
+                                                        type: "deslizar",
+                                                        name: u.name,
+                                                        email: u.email || "",
+                                                        image: u.image || ""
+                                                    }}
+                                                    previewDados={previewDados[u.id]}
+                                                    setPreviewDados={(file) => setPreviewDados(prev => ({ ...prev, [u.id]: file }))}
+                                                    chatBodyRef={chatBodyRefs.current[u.id]}
+                                                    isOpenOptions={!!openMoreOptions[`user-${u.id}`]}
+                                                    onToggleOptions={(open) => {
+                                                        setOpenMoreOptions(prev => ({ ...prev, [`user-${u.id}`]: !!open }));
+                                                    }}
+                                                    onOptionSelect={(option) => {
+                                                        switch (option) {
+                                                            case "fechar":
+                                                                closeChat(u.id);
+                                                                break;
+                                                            case "arquivar":
+                                                                handleArchiveToggle(u.id);
+                                                                setOpenMoreOptions(prev => ({ ...prev, [`user-${u.id}`]: false }));
+                                                                break;
+                                                            case "fixar":
+                                                                handleFixeToggle(u.id);
+                                                                setOpenMoreOptions(prev => ({ ...prev, [`user-${u.id}`]: false }));
+                                                                break;
+                                                            case "bloquear":
+                                                                handleBlockToggle(u.id);
+                                                                setOpenMoreOptions(prev => ({ ...prev, [`user-${u.id}`]: false }));
+                                                                break;
+                                                            case "apagar":
+                                                                handleCleanChat(u, `user-${u.id}`);
+                                                                break;
+                                                        }
+                                                    }}
+                                                    chatArquivado={{
+                                                        [`user-${u.id}`]: archivedChats[u.id],
+                                                    }}
+                                                    chatFixado={{
+                                                        [`user-${u.id}`]: fixedChats[u.id],
+                                                    }}
+                                                    chatBloqueado={{
+                                                        [`user-${u.id}`]: blockChats[u.id],
+                                                    }}
+                                                    chatLimpo={{
+                                                        [`user-${u.id}`]: cleanChats[u.id],
+                                                    }}
+                                                    fecharConversa={false}
+                                                />
                                             </span>
+                                            <div className="box-user-list">
+                                                <span
+                                                    className="image"
+                                                    style={{
+                                                        backgroundImage: `url(${getAvatar(u.image)})`,
+                                                    }}
+                                                />
+                                                <span
+                                                    style={{
+                                                        textAlign: "left",
+                                                        display: "flex",
+                                                        flexDirection: "column",
+                                                        paddingTop: 10,
+                                                    }}
+                                                >
+                                                    <span>{u.name}</span>
+                                                </span>
+                                            </div>
                                         </div>
                                     )))}
                         </div>
@@ -1182,7 +1248,7 @@ export default function ChatWidget() {
                         </div>
                     ))}
                 </div>
-            </div>
+            </div >
             {/* Overlay quando o chat está aberto */}
             {open && <div className="chat-overlay" onClick={() => setOpen(false)} />}
         </>

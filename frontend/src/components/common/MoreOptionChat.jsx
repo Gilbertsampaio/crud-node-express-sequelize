@@ -55,7 +55,10 @@ export default function ChatAttachment({
     const [showModal, setShowModal] = useState(false);
     const [tituloConfirma, setTituloConfirma] = useState(null);
     const [msgConfirma, setMsgConfirma] = useState(null);
-    const [openDirection, setOpenDirection] = useState("down");
+    // const [openDirection, setOpenDirection] = useState("down");
+
+    const [isVisible, setIsVisible] = useState(false);
+    const [closing, setClosing] = useState(false);
 
     const IconB = icons[iconBotao];
 
@@ -63,24 +66,104 @@ export default function ChatAttachment({
     const closeImageModal = () => setSelectedMedia(null);
     const openImageModal = (url, type) => setSelectedMedia({ url, type });
 
+    const [dropStyle, setDropStyle] = useState({});
+    const [dropDirection, setDropDirection] = useState("down");
+
+    useEffect(() => {
+        if (!isOpenOptions) {
+            const options = wrapperRef.current.querySelectorAll('.attachment-option');
+            options.forEach(opt => {
+                opt.style.opacity = 0;
+                opt.style.transform = 'translateY(6px) scale(0.85)';
+            });
+        }
+    }, [isOpenOptions]);
+
+    useEffect(() => {
+        if (isOpenOptions) {
+            setIsVisible(true);   // mostra o dropdown no DOM
+            setClosing(false);    // garante que não está fechando
+
+            // aqui você define dropStyle inicial + transição aberta
+            const buttonRect = wrapperRef.current.getBoundingClientRect();
+            const dropdownHeight = 250;
+            const spaceBottom = window.innerHeight - buttonRect.bottom;
+            const spaceTop = buttonRect.top;
+
+            let top = buttonRect.bottom + 8;
+            let direction = "down";
+
+            if (spaceBottom < dropdownHeight && spaceTop > spaceBottom) {
+                top = buttonRect.top - dropdownHeight - 8;
+                direction = "up";
+            }
+
+            const translateY = direction === "down" ? 6 : -6;
+
+            setDropStyle({
+                position: "fixed",
+                top: top,
+                right: window.innerWidth - buttonRect.right + 10,
+                minWidth: "210px",
+                zIndex: 1001,
+                transform: `scale(0.85) translateY(${translateY}px)`,
+                opacity: 0,
+                transformOrigin: direction === "down" ? "top right" : "bottom right",
+                pointerEvents: "none",
+            });
+
+            setTimeout(() => {
+                setDropStyle(prev => ({
+                    ...prev,
+                    transform: "scale(1) translateY(0)",
+                    opacity: 1,
+                    pointerEvents: "auto",
+                    transition: "transform 220ms cubic-bezier(.2,.9,.2,1), opacity 180ms ease",
+                }));
+            }, 20);
+
+            setDropDirection(direction);
+
+        } else if (isVisible) {
+            // Ao fechar: aplica animação de fechamento
+            setClosing(true);
+
+            setDropStyle(prev => ({
+                ...prev,
+                transform: dropDirection === "down" ? "scale(0.85) translateY(6px)" : "scale(0.85) translateY(-6px)",
+                opacity: 0,
+                pointerEvents: "none",
+                transition: "transform 180ms cubic-bezier(.2,.9,.2,1), opacity 150ms ease",
+            }));
+
+            // Remove do DOM depois da animação (ex: 180ms)
+            const timer = setTimeout(() => {
+                setIsVisible(false);
+                setClosing(false);
+            }, 200);
+
+            return () => clearTimeout(timer);
+        }
+    }, [isOpenOptions, dropDirection, isVisible]);
+
     const resetarDados = React.useCallback(() => {
         setPreviewDados(null);
         // setUserData(null);
     }, [setPreviewDados]);
 
-    useEffect(() => {
-        if (isOpenOptions && wrapperRef.current) {
-            const rect = wrapperRef.current.getBoundingClientRect();
-            const spaceBottom = window.innerHeight - rect.bottom;
-            const spaceTop = rect.top;
+    // useEffect(() => {
+    //     if (isOpenOptions && wrapperRef.current) {
+    //         const rect = wrapperRef.current.getBoundingClientRect();
+    //         const spaceBottom = window.innerHeight - rect.bottom;
+    //         const spaceTop = rect.top;
 
-            if (spaceBottom < 250 && spaceTop > spaceBottom) {
-                setOpenDirection("up");
-            } else {
-                setOpenDirection("down");
-            }
-        }
-    }, [isOpenOptions]);
+    //         if (spaceBottom < 250 && spaceTop > spaceBottom) {
+    //             setOpenDirection("up");
+    //         } else {
+    //             setOpenDirection("down");
+    //         }
+    //     }
+    // }, [isOpenOptions]);
 
     useEffect(() => {
         setLabelArquivado(chatArquivado[chatId] ? "Desarquivar" : "Arquivar");
@@ -94,17 +177,24 @@ export default function ChatAttachment({
         if (resetRef) resetRef.current = resetarDados;
     }, [resetRef, resetarDados]);
 
+    const dropdownRef = useRef(null);
+
     useEffect(() => {
         if (!isOpenOptions) return;
 
         function handleClickOutside(event) {
-            if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+            // verifica wrapper + dropdown
+            if (
+                wrapperRef.current &&
+                !wrapperRef.current.contains(event.target) &&
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target)
+            ) {
                 onToggleOptions(false);
             }
         }
 
-        document.addEventListener("mousedown", handleClickOutside, { passive: true });
-
+        document.addEventListener("mousedown", handleClickOutside);
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
@@ -196,18 +286,21 @@ export default function ChatAttachment({
 
             case "bloquear":
                 if (onOptionSelect) setShowModal(true);
+                onToggleOptions(false);
                 setTituloConfirma(`Deseja ${chatBloqueado[chatId] ? "desbloquear" : "bloquear"} ${getFirstName(chatName)}`);
                 setMsgConfirma(`${chatBloqueado[chatId] ? "A pessoa voltará a enviar mensagens para você. Ela saberá que foi desbloqueada" : "A pessoa não poderá mais enviar mensagens para você. Ela saberá que foi bloqueada"}.`);
                 break;
 
             case "limpar":
                 if (onOptionSelect) setShowModal(true);
+                onToggleOptions(false);
                 setTituloConfirma("Deseja limpar esta conversa?");
                 setMsgConfirma("A conversa ficará vazia, mas ficará na sua lista de conversas.");
                 break;
 
             case "apagar":
                 if (onOptionSelect) setShowModal(true);
+                onToggleOptions(false);
                 setTituloConfirma(`Deseja ${chatLimpo[chatId] ? "restaurar" : "apagar"} a conversa com ${getFirstName(chatName)}?`);
                 setMsgConfirma(`As mensagens serão ${chatLimpo[chatId] ? "restauradas" : "removidas"}.`);
                 break;
@@ -256,62 +349,129 @@ export default function ChatAttachment({
     const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5173";
     const getAvatar = avatar => avatar ? `${API_URL}/uploads/${avatar}` : "/images/avatar.png";
 
-    const previewModal =
-        previewDados && (
-            <div className="preview-modal" onClick={(e) => e.stopPropagation()}>
-                <div
-                    className={`preview-content dados`}
-                >
-                    <img
-                        src={getAvatar(userData?.image)}
-                        alt={userData?.name}
-                        className="img-preview"
+    const previewModal = previewDados && (
+        <div className="preview-modal" onClick={(e) => e.stopPropagation()}>
+            <div
+                className={`preview-content dados`}
+            >
+                <img
+                    src={getAvatar(userData?.image)}
+                    alt={userData?.name}
+                    className="img-preview"
+                    style={{
+                        maxWidth: "100%", marginBottom: 0, height: "70%", marginTop: "20px"
+                    }}
+                    onClick={() =>
+                        openImageModal(getAvatar(userData?.image), "image")
+                    }
+                    onError={(e) => {
+                        e.target.src = IMAGEM_PADRAO;
+                    }}
+                />
+                <div className="container-file-preview" style={{ height: "80px" }}>
+                    <div
                         style={{
-                            maxWidth: "100%", marginBottom: 0, height: "70%", marginTop: "20px"
+                            marginBottom: 10,
+                            marginTop: 10,
+                            fontSize: "1.5rem",
+                            color: "#aebac1",
                         }}
-                        onClick={() =>
-                            openImageModal(getAvatar(userData?.image), "image")
-                        }
-                        onError={(e) => {
-                            e.target.src = IMAGEM_PADRAO;
-                        }}
-                    />
-                    <div className="container-file-preview" style={{ height: "80px" }}>
-                        <div
-                            style={{
-                                marginBottom: 10,
-                                marginTop: 10,
-                                fontSize: "1.5rem",
-                                color: "#aebac1",
-                            }}
-                        >
-                            {userData ? userData.name : "Usuário não encontrado"}
-                        </div>
-                        <div style={{ fontSize: "1rem", color: "rgb(174, 186, 193)" }}>
-                            {userData ? (
-                                <>
-                                    <div><b>Email:</b> {userData.email}</div>
-                                </>
-                            ) : (
-                                "Nenhum dado disponível"
-                            )}
-                        </div>
+                    >
+                        {userData ? userData.name : "Usuário não encontrado"}
                     </div>
-
-                    <div className="preview-actions">
-                        <button
-                            type="button"
-                            className={`options-footer options-file`}
-                            onClick={() => resetarDados()}
-                        >
-                            <div className="icon-container">
-                                <CloseRoundedIcon size={24} color="#0A0A0A" />
-                            </div>
-                        </button>
+                    <div style={{ fontSize: "1rem", color: "rgb(174, 186, 193)" }}>
+                        {userData ? (
+                            <>
+                                <div><b>Email:</b> {userData.email}</div>
+                            </>
+                        ) : (
+                            "Nenhum dado disponível"
+                        )}
                     </div>
                 </div>
+
+                <div className="preview-actions">
+                    <button
+                        type="button"
+                        className={`options-footer options-file`}
+                        onClick={() => resetarDados()}
+                    >
+                        <div className="icon-container">
+                            <CloseRoundedIcon size={24} color="#0A0A0A" />
+                        </div>
+                    </button>
+                </div>
             </div>
-        );
+        </div>
+    );
+
+    const dropOpt = (
+        <div
+            className={`attachment-dropdown ${closing ? "closed" : "open"} ${dropDirection}`}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+                ...dropStyle,
+                position: "fixed",
+            }}
+        >
+            {options.map((opt, index) => {
+                const Icon = opt.icon;
+                if (opt.label === "<hr>") return <hr key={index} style={{ borderColor: "rgba(0,0,0,.1)", margin: 4 }} />;
+                if (chatArquivado[chatId] && opt.id === 3) return null;
+
+                return (
+                    <div
+                        style={{ minWidth: "210px", transitionDelay: `${index * 30}ms` }}
+                        key={index}
+                        className={`attachment-option ${opt.class}`}
+                        onClick={opt.onClick || (() => onToggleOptions(false))}
+                    >
+                        <Icon size={26} color={opt.color} direction={chatArquivado[chatId] ? "up" : "down"} />
+                        <span style={{ color: "rgba(0,0,0,.6)", fontSize: ".9375rem" }}>{opt.label}</span>
+                    </div>
+                );
+            })}
+        </div>
+    );
+
+    function usePortal(id = "portal-root") {
+        const elRef = useRef(null);
+
+        if (!elRef.current) {
+            const el = document.createElement("div");
+            el.id = id;
+            elRef.current = el;
+        }
+
+        useEffect(() => {
+            const portalRoot = document.body;
+            portalRoot.prepend(elRef.current);
+            return () => portalRoot.removeChild(elRef.current);
+        }, []);
+
+        return elRef.current;
+    }
+
+    const imagemModal = (
+        <ImageModal
+            show={!!selectedMedia}
+            imageUrl={selectedMedia?.url}
+            type={selectedMedia?.type}
+            onClose={closeImageModal}
+        />
+    );
+
+    const confirmarModal = (
+        <ConfirmModal
+            show={showModal}
+            title={tituloConfirma}
+            message={msgConfirma}
+            onConfirm={confirmAcao}
+            onCancel={cancelAcao}
+        />
+    );
+
+    const portalContainer = usePortal();
 
     return (
         <div
@@ -334,46 +494,6 @@ export default function ChatAttachment({
                 <IconB />
             </button>
 
-            <div
-                className={`attachment-dropdown header open-${openDirection} ${isOpenOptions ? "open" : "closed"} `} /*block*/
-                onClick={(e) => e.stopPropagation()}
-                style={{ zIndex: 2 }}
-            >
-                {options.map((opt, index) => {
-                    const Icon = opt.icon;
-                    if (opt.label === "<hr>") {
-                        return <hr key={index} style={{
-                            borderColor: "rgba(0, 0, 0, .1)",
-                            borderTopWidth: "1px",
-                            borderTopStyle: "solid",
-                            marginInlineStart: "1px",
-                            marginInlineEnd: "1px",
-                            marginBottom: 4,
-                            marginTop: 4,
-                            borderBottomStyle: "none",
-                            borderInlineStartStyle: "none",
-                            borderInlineEndStyle: "none",
-                        }} />;
-                    }
-
-                    if (chatArquivado[chatId] && opt.id === 3) return null;
-
-                    return (
-                        <div
-                            style={{ minWidth: "210px" }}
-                            key={index}
-                            className={`attachment-option ${opt.class}`}
-                            onClick={opt.onClick || (() => onToggleOptions(false))}
-                        >
-                            <Icon size={26} color={opt.color} direction={chatArquivado[chatId] ? "up" : "down"} />
-                            <span style={{ color: "rgba(0, 0, 0, .6)", fontSize: ".9375rem" }}>
-                                {opt.label}
-                            </span>
-                        </div>
-                    );
-                })}
-            </div>
-
             {
                 previewDados &&
                 (() => {
@@ -384,20 +504,27 @@ export default function ChatAttachment({
                     return null;
                 })()
             }
-            <ImageModal
-                show={!!selectedMedia}
-                imageUrl={selectedMedia?.url}
-                type={selectedMedia?.type}
-                onClose={closeImageModal}
-            />
 
-            <ConfirmModal
-                show={showModal}
-                title={tituloConfirma}
-                message={msgConfirma}
-                onConfirm={confirmAcao}
-                onCancel={cancelAcao}
-            />
+            {
+                isVisible &&
+                (() => {
+                    let container = document.getElementById("chat-dropdown-portal");
+                    if (!container) {
+                        container = document.createElement("div");
+                        container.id = "chat-dropdown-portal";
+                        document.body.prepend(container);
+                    }
+                    return createPortal(
+                        <div ref={dropdownRef}>{dropOpt}</div>,
+                        container
+                    );
+                })()
+            }
+
+            {createPortal(imagemModal, portalContainer)}
+            {createPortal(confirmarModal, portalContainer)}
+
+
         </div>
     );
 }

@@ -110,8 +110,9 @@
 }
 
 .chat-users-list {
-  max-height: 350px;
-  padding: 10px;
+  max-height: 405px;
+  min-height: 350px;
+  padding: 0px;
   overflow-y: auto;
   /* overflow: visible; */
 }
@@ -172,7 +173,8 @@
   transition: all .3s ease;
 }
 
-.chat-user .box-user-list .image {
+.chat-user .box-user-list .image,
+.archived-users .chat-user .image {
   width: 60px;
   height: 60px;
   border-radius: 50%;
@@ -867,7 +869,7 @@
   opacity: 1;
 }
 
-.chat-user .icon-chevron-list .chat-attachment button {
+.chat-user .icon-chevron-list .chat-attachment button:not(.confirm-btn, .cancel-btn) {
   padding: inherit;
   background-color: transparent;
   color: inherit;

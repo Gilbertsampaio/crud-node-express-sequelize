@@ -13,36 +13,55 @@
   overflow: hidden;
 }
 
-/* DROPDOWN: cresce a partir do botão (bottom left) */
 .attachment-dropdown {
   position: absolute;
   bottom: calc(100% + 10px);
-  /* sobe acima do botão; ajuste conforme necessário */
-  left: 0;
+  transform-origin: bottom left;
   background: #fff;
   border-radius: 20px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   padding: 8px;
-  z-index: 999;
   min-width: 200px;
+  z-index: 9999;
+  height: fit-content;
+  /* transform: scale(0.85) translateY(6px); */
+  /* opacity: 0; */
+  /* visibility: hidden; */
+  /* pointer-events: none; */
+  /* transition:
+    transform 220ms cubic-bezier(.2, .9, .2, 1),
+    opacity 180ms ease,
+    visibility 0ms linear 220ms; */
+  /* will-change: transform, opacity; */
+}
+
+.chat-attachment .attachment-dropdown {
+  position: absolute;
+  bottom: calc(100% + 10px);
   transform-origin: bottom left;
-  transform: scale(0.85) translateY(6px);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 8px;
+  min-width: 200px;
+  z-index: 9999;
+  height: fit-content;
+  /* transform: scale(0.85) translateY(6px); */
+  /* opacity: 0; */
+  /* visibility: hidden; */
+  /* pointer-events: none; */
   transition:
     transform 220ms cubic-bezier(.2, .9, .2, 1),
     opacity 180ms ease,
     visibility 0ms linear 220ms;
-  will-change: transform, opacity;
-  height: fit-content;
+  /* will-change: transform, opacity; */
 }
 
 .attachment-dropdown.header {
   transform-origin: top right;
-  top: 55px;
+  top: inherit;
   left: inherit;
-  right: calc(30% - 10px);
+  right: 278.111px;
 }
 
 .chat-header:not(.max) .attachment-dropdown.header.open.block {
@@ -82,11 +101,11 @@
 }
 
 /* aberto */
-.attachment-dropdown.open {
-  transform: scale(1) translateY(0);
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
+.chat-attachment .attachment-dropdown.open {
+  /* transform: scale(1) translateY(0); */
+  /* opacity: 1; */
+  /* visibility: visible; */
+  /* pointer-events: auto; */
   transition:
     transform 220ms cubic-bezier(.2, .9, .2, 1),
     opacity 180ms ease,
@@ -95,10 +114,18 @@
 
 /* fechado (classe reversed) */
 .attachment-dropdown.closed {
-  transform: scale(0.50) translateY(6px);
+  transform: scale(0.5) translateY(6px);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+}
+
+.attachment-dropdown.down {
+  transform-origin: top right;
+}
+
+.attachment-dropdown.up {
+  transform-origin: bottom right;
 }
 
 /* Opções (estágio inicial levemente deslocadas) */
