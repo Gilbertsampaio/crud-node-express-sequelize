@@ -7,6 +7,7 @@ import Button from '../../components/common/Button';
 import LoadingModal from '../../components/common/LoadingModal';
 import { FaPlus, FaEdit, FaTrash, FaHome } from 'react-icons/fa';
 import ConfirmModal from '../../components/common/ConfirmModal';
+import ImageModal from "../../components/common/ImageModal";
 // import useAuth from "../../context/useAuth";
 import './NewsList.css';
 
@@ -17,6 +18,11 @@ export default function NewsList() {
   const [selectedId, setSelectedId] = useState(null);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [selectedMedia, setSelectedMedia] = useState(null);
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+  const openImageModal = (url, type) => setSelectedMedia({ url, type });
+  const closeImageModal = () => setSelectedMedia(null);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -77,6 +83,31 @@ export default function NewsList() {
 
   const columns = [
     { key: 'id', label: 'ID' },
+    {
+      key: "image",
+      label: "Mídia",
+      render: (news) =>
+      (
+        <div
+          className="user-image"
+          alt={news.image || "Novidade"}
+          style={{
+            backgroundImage: `url(${API_URL}/uploads/${news.image})`,
+            width: 80,
+            height: 80,
+            borderRadius: "8px",
+            objectFit: "cover",
+            cursor: "zoom-in",
+          }}
+          onClick={() => openImageModal(`${API_URL}/uploads/${news.image}`, "image")}
+          onError={(e) => {
+            e.currentTarget.src =
+              "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'><rect width='100%' height='100%' fill='%23eee'/></svg>";
+          }}
+        >
+        </div>
+      )
+    },
     { key: 'title', label: 'Título' },
     { key: 'description', label: 'Descrição' },
     { key: 'category', label: 'Categoria', render: n => n.Category?.name || '' },
@@ -118,13 +149,19 @@ export default function NewsList() {
       {error && error !== 'logout' && <p className="error">{error}</p>}
 
       <Table columns={columns} data={news} emptyMessage="Nenhuma novidade encontrada." />
-      
+
       <ConfirmModal
         show={showModal}
         title="Confirmar exclusão"
         message="Deseja realmente excluir esta novidade?"
         onConfirm={confirmDelete}
         onCancel={cancelDelete}
+      />
+      <ImageModal
+        show={!!selectedMedia}
+        imageUrl={selectedMedia?.url}
+        type={selectedMedia?.type}
+        onClose={closeImageModal}
       />
     </div>
   );

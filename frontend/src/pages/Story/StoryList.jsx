@@ -120,24 +120,24 @@ export default function StoryList() {
             controls={false}
           />
         ) : (
-          <img
-            src={`${API_URL}/uploads/${story.media_url}`}
+          <div
+            className="user-image"
             alt={story.title || "Story"}
             style={{
+              backgroundImage: `url(${API_URL}/uploads/${story.media_url})`,
               width: 80,
               height: 80,
               borderRadius: "8px",
               objectFit: "cover",
               cursor: "zoom-in",
             }}
-            onClick={() =>
-              openImageModal(`${API_URL}/uploads/${story.media_url}`, "image")
-            }
+            onClick={() => openImageModal(`${API_URL}/uploads/${story.media_url}`, "image")}
             onError={(e) => {
               e.currentTarget.src =
                 "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'><rect width='100%' height='100%' fill='%23eee'/></svg>";
             }}
-          />
+          >
+          </div>
         ),
     },
     { key: "title", label: "Título" },
