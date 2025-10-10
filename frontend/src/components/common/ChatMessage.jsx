@@ -19,9 +19,9 @@ export default function ChatMessage({ message, currentUser/*, chatName*/ }) {
             data-receiver-id={message.receiver_id}
             data-read-at={message.read_at}
         >
-            <div className={`chat-message-bubble ${message.type === "image" || message.type === "video" || message.type === "file" ? "img" : ""}`}>
+            <div className={`chat-message-bubble ${message.type === "image" || message.type === "camera" || message.type === "video" || message.type === "file" ? "img" : ""}`}>
                 {/* {isOwn ? "Você" : chatName}: */}
-                {message.type === "image" ? (
+                {(message.type === "image" || message.type === "camera") ? (
                     <div className="container-img-sender">
                         <img
                             src={`${API_URL}/uploads/messages/${message.metadata.fileName}`}

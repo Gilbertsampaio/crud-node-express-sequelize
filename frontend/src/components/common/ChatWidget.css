@@ -23,6 +23,10 @@
   padding-left: 10px;
 }
 
+.chat-bar.ajuste{
+  margin-bottom: -1px;
+}
+
 .chat-bar .image {
   /* margin: 5px 10px; */
   width: 47px;
@@ -97,21 +101,32 @@
   border-radius: 6px;
   border: 1px solid #ccc; */
 
-  background-color: #edf3f8;
+  background-color: rgba(194, 189, 184, .15);
   box-shadow: none;
   width: calc(100% - 40px);
   margin: .8rem 1.2rem;
   padding: 10px 10px 10px 50px;
   border: none;
   color: rgb(0 0 0/.9);
-  border-radius: 0.4rem;
+  border-end-end-radius: 100px;
+  border-end-start-radius: 100px;
+  border-start-start-radius: 100px;
+  border-start-end-radius: 100px;
   box-sizing: border-box;
   transition: box-shadow 84ms cubic-bezier(.34, 0, .21, 1);
 }
 
+.chat-search:focus {
+  background-color: #fff;
+  transition: box-shadow 84ms cubic-bezier(.34, 0, .21, 1);
+  outline: none;
+  box-shadow: inset 0 0 0 2px #1DAA61;
+;
+}
+
 .chat-users-list {
-  max-height: 405px;
-  min-height: 350px;
+  max-height: 450px;
+  height: 450px;
   padding: 0px;
   overflow-y: auto;
   /* overflow: visible; */
@@ -203,6 +218,19 @@
   top: 8px;
   left: 50px;
   transition: all .3s ease;
+  z-index: 1;
+}
+
+.status.chat {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 1px solid #fff;
+  position: absolute;
+  top: 8px;
+  left: 50px;
+  transition: all .3s ease;
+  z-index: 1;
 }
 
 .chat-user:hover .box-user-list .status:not(.online) {
@@ -279,6 +307,7 @@
   cursor: pointer;
   border-radius: 8px 8px 0 0;
   user-select: none;
+  position: relative;
 }
 
 .chat-header img:not(.image-modal-img) {
@@ -524,7 +553,7 @@
   position: absolute;
   bottom: 0px;
   right: 2px;
-  z-index: 3;
+  z-index: 0;
 }
 
 .message-status.lida {
@@ -741,6 +770,8 @@
   gap: 20px;
   transition: all .3s ease;
   cursor: pointer;
+  background-color: rgba(194, 189, 184, .15);
+  margin-bottom: -1px;
 }
 
 .buttonArquivo:hover {
@@ -761,7 +792,7 @@
   width: 300px;
   height: 100%;
   background: #fff;
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
+  /* box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2); */
   transition: right 0.2s ease-in-out;
   display: flex;
   flex-direction: column;
@@ -769,7 +800,7 @@
 }
 
 .archived-panel.open {
-  right: 0;
+  right: -1px;
   /* aparece */
 }
 
@@ -911,4 +942,43 @@
   right: 20px;
   transform-origin: bottom right;
   z-index: 99999;
+}
+
+.camera-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.camera-content {
+  background: #111;
+  padding: 1rem;
+  border-radius: 10px;
+  text-align: center;
+  width: 90%;
+  max-width: 500px;
+}
+
+.camera-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.btn-cancel,
+.btn-capture {
+  background: #007bfc;
+  color: white;
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-cancel {
+  background: #444;
 }

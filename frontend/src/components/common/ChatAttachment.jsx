@@ -27,6 +27,72 @@ export default function ChatAttachment({ chatId, isOpenAttachment, onToggleAttac
   const [inputs, setInputs] = useState({});
   const [openEmoji, setOpenEmoji] = useState(null);
 
+  const [showCamera, setShowCamera] = useState(false);
+  const [stream, setStream] = useState(null);
+  const videoRef = useRef(null);
+
+  const initCamera = async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
+      setStream(mediaStream);
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+      }
+    } catch (err) {
+      console.error("Erro ao acessar câmera:", err);
+      setAlertMessage("Não foi possível acessar a câmera. Verifique as permissões.");
+      setShowAlert(true);
+      setShowCamera(false);
+    }
+  };
+
+  const capturePhoto = () => {
+    const canvas = document.createElement("canvas");
+    const video = videoRef.current;
+    if (!video) return;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob(blob => {
+      const file = new File([blob], "foto_camera.jpg", { type: "image/jpeg" });
+      file.previewUrl = URL.createObjectURL(file);
+      setPreviewFile(file);
+      stopCamera();
+      setShowCamera(false);
+    }, "image/jpeg", 0.9);
+  };
+
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+    setStream(null);
+  };
+
+  const cameraModal = showCamera && (
+    <div className="camera-modal">
+      <div className="camera-content">
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          style={{ width: "100%", borderRadius: "8px" }}
+        />
+        <div className="camera-actions">
+          <button className="btn-cancel" onClick={() => { stopCamera(); setShowCamera(false); }}>
+            Cancelar
+          </button>
+          <button className="btn-capture" onClick={capturePhoto}>
+            Tirar Foto
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   const resetarInput = React.useCallback(() => {
     // setSelectedOption(null);
     setPreviewFile(null);
@@ -87,12 +153,23 @@ export default function ChatAttachment({ chatId, isOpenAttachment, onToggleAttac
       color: "#ffcc00",
       onClick: () => chamaFuncao("video"),
     },
-    { label: "Câmera", icon: CameraFilledRefreshed, color: "#FF2E74" },
+    { label: "Câmera", 
+      icon: CameraFilledRefreshed, 
+      color: "#FF2E74" ,
+      onClick: () => chamaFuncao("camera"),
+    },
     { label: "Áudio", icon: HeadphonesFilled, color: "#FA6533" },
   ];
 
   function chamaFuncao(optionLabel) {
     setSelectedOption(optionLabel);
+
+    if (optionLabel === "camera") {
+      setShowCamera(true);
+      setTimeout(initCamera, 100); // inicia a câmera após abrir o modal
+      return;
+    }
+
     fileInputRef.current.click()
     setTimeout(function () {
       onToggleAttachment(false);
@@ -160,6 +237,7 @@ export default function ChatAttachment({ chatId, isOpenAttachment, onToggleAttac
     } catch (err) {
       console.error("Erro no upload:", err);
     } finally {
+      console.log(previewFile)
       if (previewFile?.previewUrl) {
         URL.revokeObjectURL(previewFile.previewUrl);
       }
@@ -188,7 +266,7 @@ export default function ChatAttachment({ chatId, isOpenAttachment, onToggleAttac
     <div className="preview-modal">
       <div className={`preview-content ${!previewFile?.type?.startsWith("image/") && "video"}`}>
 
-        {selectedOption === "image" && (
+        {(selectedOption === "image" || selectedOption === "camera") && (
           <img
             src={previewFile.previewUrl}
             alt={previewFile.name}
@@ -319,10 +397,12 @@ export default function ChatAttachment({ chatId, isOpenAttachment, onToggleAttac
       {/* {previewFile && createPortal(previewModal, document.querySelector(".div-preview"))} */}
       {/* {previewFile && createPortal(previewModal, document.querySelector(`.chat-window[data-chat-id="${chatId}"] .div-preview`))} */}
       {previewFile && (() => {
-        const container = document.querySelector(`.chat-window[data-chat-id="${chatId}"] .div-preview`);
+        const container = document.querySelector(`.chat-window[data-chat-id="chat-${chatId}"] .div-preview`);
         if (container) return createPortal(previewModal, container);
         return null;
       })()}
+
+      {showCamera && createPortal(cameraModal, document.body)}
     </div>
   );
 }
