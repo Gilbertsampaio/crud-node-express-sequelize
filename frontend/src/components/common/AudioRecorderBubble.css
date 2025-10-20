@@ -1,0 +1,165 @@
+.whatsapp-recorder {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* barra principal do gravador */
+.recorder-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #ffffff;
+    border-radius: 40px;
+    padding: 9px 10px;
+    width: 100%;
+    max-width: 520px;
+    position: absolute;
+    top: 10px;
+    left: 3px;
+
+    /* animação lateral + leve fade */
+    animation: slideInRight 0.25s ease forwards;
+}
+
+.recorder-bar.max {
+    max-width: 581px;
+}
+
+/* botão principal */
+.recorder-bar .options-send {
+    position: initial !important;
+}
+
+/* animação lateral (direita → esquerda) */
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(40px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+/* botões ícone (lixo / pause) */
+.recorder-icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ponto vermelho piscando */
+.record-dot {
+    width: 10px;
+    height: 10px;
+    background: #d9303e;
+    border-radius: 50%;
+    animation: pulse 1s infinite;
+    flex: 0 0 auto;
+}
+
+.record-dot.paused {
+    animation: none;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.45);
+        opacity: 0.6;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* tempo formatado */
+.record-time {
+    font-size: 16px;
+    color: #111;
+    min-width: 42px;
+    text-align: center;
+    flex: 0 0 auto;
+}
+
+/* área do waveform */
+.record-wave {
+    display: flex;
+    align-items: center;
+    height: 40px;
+    width: 180px;
+    margin: 0 10px;
+    overflow: hidden;
+}
+
+.record-wave.max {
+    width: 330px;
+}
+
+/* pausado — congela animação */
+.record-wave.paused .wave-bar {
+    background-color: #aaa;
+}
+
+/* barras do waveform */
+.wave-bar {
+    width: 3px;
+    margin: 0 1px;
+    background-color: #aaa;
+    border-radius: 3px;
+    transition: height 0.1s ease;
+}
+
+.wave-bar:nth-child(3n) {
+    animation-duration: 0.95s;
+}
+
+.wave-bar:nth-child(4n) {
+    animation-duration: 1.05s;
+}
+
+.wave-bar:nth-child(5n) {
+    animation-duration: 1.15s;
+}
+
+@keyframes wave {
+    0% {
+        height: 6px;
+    }
+
+    40% {
+        height: 22px;
+    }
+
+    60% {
+        height: 14px;
+    }
+
+    100% {
+        height: 6px;
+    }
+}
+
+/* botão de microfone (quando não está gravando) */
+.options-footer.options-audio {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+}

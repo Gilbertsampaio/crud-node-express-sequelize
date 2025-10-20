@@ -63,7 +63,7 @@ wss.on('connection', (ws) => {
 
         case 'message':
           {
-            const { senderId, receiverId, content, msgType = 'text', metadata = {} } = data.payload || {};
+            const { id, senderId, receiverId, content, msgType = 'text', metadata = {} } = data.payload || {};
 
             if (!senderId || !receiverId || !content) {
               ws.send(JSON.stringify({ type: 'error', message: 'Mensagem inválida' }));
@@ -71,13 +71,37 @@ wss.on('connection', (ws) => {
             }
 
             const Message = require('./models/message');
-            const savedMessage = await Message.create({
-              sender_id: senderId,
-              receiver_id: receiverId,
-              type: msgType,
-              content,
-              metadata
-            });
+            let savedMessage;
+
+            if (id) {
+              const [updatedRows] = await Message.update(
+                {
+                  sender_id: senderId,
+                  receiver_id: receiverId,
+                  type: msgType,
+                  content,
+                  metadata,
+                },
+                {
+                  where: { id: id }
+                }
+              );
+
+              if (updatedRows === 0) {
+                ws.send(JSON.stringify({ type: 'error', message: 'Mensagem não encontrada para atualização' }));
+                return;
+              }
+
+              savedMessage = await Message.findByPk(id);
+            } else {
+              savedMessage = await Message.create({
+                sender_id: senderId,
+                receiver_id: receiverId,
+                type: msgType,
+                content,
+                metadata,
+              });
+            }
 
             // Envia para o destinatário se estiver online
             const receiverWs = connectedUsers.get(receiverId);

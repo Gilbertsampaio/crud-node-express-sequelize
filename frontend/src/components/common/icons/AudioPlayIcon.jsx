@@ -1,0 +1,23 @@
+import React from "react";
+
+export default function AudioPlayIcon({ size = 34, color = "currentColor" }) {
+  return (
+    <svg
+      viewBox="0 0 34 34"
+      height={size}
+      width={size}
+      preserveAspectRatio="xMidYMid meet"
+      version="1.1"
+      x="0px"
+      y="0px"
+      enableBackground="new 0 0 34 34"
+    >
+      <title>audio-play</title>
+      <path
+        fill={color}
+        d="M8.5,8.7c0-1.7,1.2-2.4,2.6-1.5l14.4,8.3c1.4,0.8,1.4,2.2,0,3l-14.4,8.3 
+           c-1.4,0.8-2.6,0.2-2.6-1.5V8.7z"
+      />
+    </svg>
+  );
+}

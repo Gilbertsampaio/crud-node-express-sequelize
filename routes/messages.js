@@ -117,4 +117,101 @@ router.get("/unread-count/:userId", async (req, res) => {
   }
 });
 
+// Buscar uma mensagem enquete específica pelo ID
+router.get("/msg/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const message = await Message.findByPk(id);
+
+    if (!message) {
+      return res.status(404).json({ error: "Mensagem não encontrada" });
+    }
+
+    res.json(message);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro ao buscar mensagem" });
+  }
+});
+
+// Buscar uma mensagem evento específica pelo ID
+router.get("/evento/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const message = await Message.findByPk(id);
+
+    if (!message) {
+      return res.status(404).json({ error: "Evento não encontrado" });
+    }
+
+    res.json(message);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro ao buscar evento" });
+  }
+});
+
+router.put("/evento/:id/participantes", async (req, res) => {
+  const { id } = req.params;
+  const { participante } = req.body;
+
+  if (!participante || !participante.id) {
+    return res.status(400).json({ error: "Participante inválido" });
+  }
+
+  try {
+    const message = await Message.findByPk(id);
+
+    if (!message || message.type !== "evento") {
+      return res.status(404).json({ error: "Evento não encontrado ou tipo inválido" });
+    }
+
+    const metadata = message.metadata || {};
+    const participantes = Array.isArray(metadata.participantes) ? [...metadata.participantes] : [];
+
+    const index = participantes.findIndex(p => p.id === participante.id);
+
+    if (index !== -1) {
+      participantes[index] = {
+        ...participantes[index],
+        ...participante,
+      };
+    } else {
+      participantes.push(participante);
+    }
+
+    metadata.participantes = participantes;
+
+    // 👇 Força o Sequelize a detectar a alteração no JSON
+    message.set("metadata", metadata);
+    message.changed("metadata", true);
+    await message.save();
+
+    res.json({ success: true, metadata: message.metadata });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro ao atualizar participantes" });
+  }
+});
+
+// Buscar uma mensagem enquete específica pelo ID
+router.get("/enquete/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const message = await Message.findByPk(id);
+
+    if (!message) {
+      return res.status(404).json({ error: "Enquete não encontrada" });
+    }
+
+    res.json(message);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro ao buscar enquete" });
+  }
+});
+
 module.exports = router;

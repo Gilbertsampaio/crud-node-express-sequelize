@@ -37,7 +37,7 @@ textarea.error {
   box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.2);
 }
 
-button {
+button:not(.recorder-icon-btn, .showVotes, .close-archived, .close-enquete, .opt_msg) {
   padding: 0.7rem 1.5rem;
   background-color: #007bff;
   color: white;
@@ -48,7 +48,7 @@ button {
   transition: background-color 0.2s;
 }
 
-button:hover {
+button:not(.recorder-icon-btn, .showVotes, .close-archived, .close-enquete, .opt_msg):hover {
   background-color: #0056b3;
 }
 

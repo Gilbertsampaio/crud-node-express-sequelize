@@ -25,11 +25,16 @@ import MaximizeSmallIcon from "./icons/MaximizeSmallIcon";
 import MinimizeSmallIcon from "./icons/MinimizeSmallIcon";
 import CloseRoundedIcon from "./icons/CloseRoundedIcon";
 import MicOutlined from "./icons/MicOutlined";
+import StarIcon from "./icons/StarIcon";
+
 import BlockRefreshedIcon from "./icons/BlockRefreshedIcon";
 import ChatAttachment from "./ChatAttachment";
 import EmojiDropdown from "./EmojiDropdown";
 import ChatMessage from "./ChatMessage";
 import MoreOptionChat from "./MoreOptionChat";
+import AudioRecorderBubble from "./AudioRecorderBubble";
+import DetalhesEnquete from "./DetalhesEnquete";
+import DetalhesEvento from "./DetalhesEvento";
 
 export default function ChatWidget() {
     const [open, setOpen] = useState(false);
@@ -63,6 +68,14 @@ export default function ChatWidget() {
     const [cleanChats, setCleanChats] = useState({});
     const [searchTerm, setSearchTerm] = useState("");
     const [searchTermArchived, setSearchTermArchived] = useState("");
+    const [showDetalhesEnquete, setShowDetalhesEnquete] = useState(false);
+    const [showDetalhesEvento, setShowDetalhesEvento] = useState(false);
+    const [idEnquete, setIdEnquete] = useState(null);
+    const [idEvento, setIdEvento] = useState(null);
+    const [votos, setVotos] = useState([]);
+    const [hideDropConfirma, setHideDropConfirma] = useState(false);
+    const [openEvento, setOpenEvento] = useState(false);
+    const [openEnquete, setOpenEnquete] = useState(false);
 
     const ws = useRef(null);
 
@@ -70,6 +83,32 @@ export default function ChatWidget() {
     const observersRef = useRef(new Map()); // chatId -> observer
     const pendingReadsRef = useRef(new Map()); // chatId -> Set(messageIds)
     const flushTimerRef = useRef(null);
+
+    useEffect(() => {
+
+        const handleScroll = () => {
+            setHideDropConfirma(true);
+
+            setTimeout(() => {
+                setHideDropConfirma(false);
+            }, 200);
+        };
+
+        visibleChats.forEach(c => {
+
+            const chatBody = chatBodyRefs.current[c.id];
+            if (chatBody) {
+                chatBody.addEventListener("scroll", handleScroll);
+            }
+
+            return () => {
+                if (chatBody) {
+                    chatBody.removeEventListener("scroll", handleScroll);
+                }
+            };
+        })
+
+    }, [chatBodyRefs, visibleChats]);
 
     useEffect(() => {
         async function fetchArchived() {
@@ -276,6 +315,7 @@ export default function ChatWidget() {
                     top: chatBody.scrollHeight,
                     behavior: "smooth",
                 });
+
             }
         });
     }, [messagesCountKey, visibleChats, typingStatus]);
@@ -404,9 +444,22 @@ export default function ChatWidget() {
 
                         let updated;
                         if (exists) {
-                            updated = prev.map(c =>
-                                c.id === chatId ? { ...c, messages: [...(c.messages || []), msg] } : c
-                            );
+                            updated = prev.map(c => {
+                                if (c.id === chatId) {
+                                    const existsMsgIndex = (c.messages || []).findIndex(m => m.id === msg.id);
+
+                                    if (existsMsgIndex !== -1) {
+                                        // Atualiza a mensagem existente
+                                        const newMessages = [...c.messages];
+                                        newMessages[existsMsgIndex] = msg;
+                                        return { ...c, messages: newMessages };
+                                    } else {
+                                        // Adiciona a mensagem nova
+                                        return { ...c, messages: [...(c.messages || []), msg] };
+                                    }
+                                }
+                                return c;
+                            });
                         } else {
                             fetchUserAndMessages(chatId, msg).then(({ userData, history }) => {
                                 setChats(prevChats => {
@@ -611,6 +664,10 @@ export default function ChatWidget() {
                 }
 
                 updateVisibleChats(updated);
+
+                if (showDetalhesEnquete) {
+                    setShowDetalhesEnquete(false);
+                }
                 return updated;
             });
         } catch {
@@ -651,6 +708,10 @@ export default function ChatWidget() {
         });
 
         updateVisibleChats(updated);
+
+        if (showDetalhesEnquete) {
+            setShowDetalhesEnquete(false);
+        }
 
         if (maximizarChat === id) setMaximizarChat(null);
 
@@ -830,7 +891,9 @@ export default function ChatWidget() {
                 {/* barra */}
                 <div
                     className={`chat-bar ${users.some(u => archivedChats[u.id]) ? "ajuste" : "ajuste"}`}
-                    onClick={() => setOpen(!open)}
+                    onClick={() => {
+                        setOpen(!open);
+                    }}
                 >
                     <span className="image" style={{ backgroundImage: `url(${getAvatar(user?.image)})` }} />
                     <span className="chat-bar-text">
@@ -1222,7 +1285,15 @@ export default function ChatWidget() {
                                                             key={idx}
                                                             message={m}
                                                             currentUser={user}
-                                                            chatName={c.name}
+                                                            setShowDetalhesEnquete={setShowDetalhesEnquete}
+                                                            setIdEnquete={setIdEnquete}
+                                                            setShowDetalhesEvento={setShowDetalhesEvento}
+                                                            setIdEvento={setIdEvento}
+                                                            hideDropConfirma={hideDropConfirma}
+                                                            setHideDropConfirma={setHideDropConfirma}
+                                                            setOpenEvento={setOpenEvento}
+                                                            setOpenEnquete={setOpenEnquete}
+                                                            chatId={c.id}
                                                         />
                                                     );
                                                 })}
@@ -1267,16 +1338,11 @@ export default function ChatWidget() {
                                                     isOpenAttachment={openAttachment === c.id}
                                                     onToggleAttachment={(open, payload) => {
                                                         setOpenAttachment(open ? c.id : null);
-
-                                                        // ajusta para enviar qualquer arquivo, mas mantém envio automático para imagens
                                                         if (payload) {
-                                                            // const msgType = payload.type === "file" && payload.metadata?.fileName?.match(/\.(jpg|jpeg|png|gif)$/i)
-                                                            //     ? "image"
-                                                            //     : payload.type;
-
                                                             ws.current.send(JSON.stringify({
                                                                 type: "message",
                                                                 payload: {
+                                                                    id: payload.id,
                                                                     senderId: user.id,
                                                                     receiverId: c.id,
                                                                     content: payload.content,
@@ -1286,6 +1352,14 @@ export default function ChatWidget() {
                                                             }));
                                                         }
                                                     }}
+                                                    openEvento={openEvento}
+                                                    setOpenEvento={setOpenEvento}
+                                                    idEvento={idEvento}
+                                                    setIdEvento={setIdEvento}
+                                                    openEnquete={openEnquete}
+                                                    setOpenEnquete={setOpenEnquete}
+                                                    idEnquete={idEnquete}
+                                                    setIdEnquete={setIdEnquete}
                                                 />
                                                 <EmojiDropdown
                                                     chatIdEmoji={c.id}
@@ -1301,16 +1375,38 @@ export default function ChatWidget() {
                                                         <SendFilledIcon size={24} color="#ffffff" />
                                                     </span>
                                                 ) : (
-                                                    <span
-                                                        className="options-footer options-audio"
-                                                        onClick={() => handleSendMessage(c.id)}
-                                                    >
-                                                        <MicOutlined size={24} />
-                                                    </span>
+                                                    <AudioRecorderBubble
+                                                        chatId={c.id}
+                                                        onToggleAttachment={(payload) => {
+                                                            if (payload) {
+                                                                ws.current.send(JSON.stringify({
+                                                                    type: "message",
+                                                                    payload: {
+                                                                        senderId: user.id,
+                                                                        receiverId: c.id,
+                                                                        content: payload.content,
+                                                                        msgType: payload.type,
+                                                                        metadata: payload.metadata,
+                                                                    },
+                                                                }));
+                                                            }
+                                                        }}
+                                                        max={`${maximizarChat === c.id ? "max" : ""}`}
+                                                    />
                                                 )}
                                             </div>
                                         </div>
                                     )}
+                                    <DetalhesEnquete
+                                        showDetalhesEnquete={showDetalhesEnquete}
+                                        setShowDetalhesEnquete={setShowDetalhesEnquete}
+                                        idEnquete={idEnquete}
+                                    />
+                                    <DetalhesEvento
+                                        showDetalhesEvento={showDetalhesEvento}
+                                        setShowDetalhesEvento={setShowDetalhesEvento}
+                                        idEvento={idEvento}
+                                    />
                                 </div>
                             </div>
                         )

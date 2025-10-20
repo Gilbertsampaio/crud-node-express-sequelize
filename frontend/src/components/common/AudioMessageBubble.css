@@ -1,0 +1,90 @@
+.audio-bubble {
+  display: flex;
+  align-items: center;
+  border-radius: 12px;
+  max-width: 280px;
+  min-width: 250px;
+  gap: 10px;
+}
+
+.audio-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: #fa6533;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.audio-icon.record {
+  background-color: #00aaff;
+}
+
+.audio-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-top: 25px;
+}
+
+.audio-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.play-button {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+}
+
+.audio-progress-bar {
+  flex: 1;
+  background-color: rgba(0, 0, 0, 0.1);
+  height: 4px;
+  border-radius: 2px;
+  position: relative;
+  cursor: pointer;
+}
+
+/* <-- REMOVIDA transição para evitar "recuo" ao resetar */
+.audio-progress {
+  background-color: #00aaff;
+  height: 100%;
+  border-radius: 2px;
+  width: 0%;
+}
+
+/* knob posicionada por left% e centralizada com translateX(-50%) */
+.audio-knob {
+  width: 10px;
+  height: 10px;
+  background-color: #00aaff;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  /* sem transition aqui também */
+}
+
+.audio-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #555;
+  margin-top: 10px;
+}
+
+.audio-time {
+  font-size: 11px;
+  color: #777;
+}
+
+.audio-hour {
+  font-size: 11px;
+  color: #777;
+}
