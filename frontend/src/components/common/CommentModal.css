@@ -152,3 +152,9 @@
   background-color: #8f0c0c;
   transition: all .3s ease;
 }
+
+.delete-btn svg {
+  fill: #fff;
+  width: 14px;
+  height: 14px;
+}

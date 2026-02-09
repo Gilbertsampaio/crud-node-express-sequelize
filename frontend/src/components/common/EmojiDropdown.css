@@ -11,6 +11,7 @@
   cursor: pointer;
   transition: transform 220ms cubic-bezier(.2,.9,.2,1);
   outline: none;
+  bottom: 12px;
 }
 
 /* animação do svg dentro do botão */

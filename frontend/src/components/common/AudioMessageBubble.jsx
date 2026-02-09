@@ -6,7 +6,7 @@ import AudioPlayIcon from "./icons/AudioPlayIcon";
 import AudioPauseIcon from "./icons/AudioPauseIcon";
 import { formatarHoraMinuto } from "../../utils/helpers";
 
-export default function AudioMessageBubble({ src, time = "14:18", tipo }) {
+export default function AudioMessageBubble({ src, time = "14:18", tipo, onTimeUpdate }) {
     const audioRef = useRef(null);
     const rafRef = useRef(null);
     const audioBarRef = useRef(null);
@@ -85,6 +85,12 @@ export default function AudioMessageBubble({ src, time = "14:18", tipo }) {
             rafRef.current = requestAnimationFrame(rafUpdate);
         }
     };
+
+    useEffect(() => {
+        if (onTimeUpdate) {
+            onTimeUpdate(formatTime(currentTime));
+        }
+    }, [currentTime, onTimeUpdate]);
 
     useEffect(() => {
         const audio = audioRef.current;
@@ -273,7 +279,7 @@ export default function AudioMessageBubble({ src, time = "14:18", tipo }) {
 
                 <div className="audio-info">
                     <span className="audio-time">{formatTime(currentTime)}</span>
-                    <span className="audio-hour">{formatarHoraMinuto(time)}</span>
+                    {/* <span className="audio-hour">{formatarHoraMinuto(time)}</span> */}
                 </div>
             </div>
 

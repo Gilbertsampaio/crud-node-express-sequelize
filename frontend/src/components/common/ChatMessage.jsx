@@ -5,17 +5,25 @@ import ImageModal from "./ImageModal";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5173";
 const IMAGEM_PADRAO = `${API_URL}/images/news.png`;
 import AudioMessageBubble from "./AudioMessageBubble";
+import VideoMessageBubble from "./VideoMessageBubble";
 import EnqueteButton from "./EnqueteButton";
 import CheckCircleFilled from "./icons/CheckCircleFilled";
 import MultiSelectIconFilled from "./icons/MultiSelectIconFilled";
 import CalendarMonthIcon from './icons/CalendarMonthIcon';
 import useAuth from "../../context/useAuth";
 import EventoConfirma from "./EventoConfirma";
-import { getTime } from "../../utils/helpers";
+import { getTime, formatarDataPersonalizada } from "../../utils/helpers";
 import MoreOptionMessage from "./MoreOptionMessage";
-import api from "../../api/api";
+import PinnedSmallIcon from "./icons/PinnedSmallIcon";
+import DocumentRefreshedThin from "./icons/DocumentRefreshedThin";
+import KeyboardVoiceFilled from "./icons/KeyboardVoiceFilled";
+import PollRefreshedThin from "./icons/PollRefreshedThin";
+import ChatListEvent from "./icons/ChatListEvent";
+import ImageRefreshed from "./icons/ImageRefreshed";
+import VideoCallRefreshed from "./icons/VideoCallRefreshed";
+import MessageReplyPreview from "./MessageReplyPreview";
 
-export default function ChatMessage({ message, currentUser, setShowDetalhesEnquete, setIdEnquete, setShowDetalhesEvento, setIdEvento, hideDropConfirma, setHideDropConfirma, setOpenEvento, setOpenEnquete, chatId }) {
+export default function ChatMessage({ message, currentUser, setShowDetalhesEnquete, setIdEnquete, setShowDetalhesEvento, setIdEvento, hideDropConfirma, setHideDropConfirma, setOpenEvento, setOpenEnquete, chatId, editarMensagem, apagarMensagem, fixarMensagem, isFixed, setResponderMsg, nomeChat }) {
     const isOwn = message.sender_id === currentUser.id;
     const [selectedMedia, setSelectedMedia] = useState(null);
     const closeImageModal = () => setSelectedMedia(null);
@@ -33,11 +41,16 @@ export default function ChatMessage({ message, currentUser, setShowDetalhesEnque
     const [mensagem, setMensagem] = useState("");
     const [error, setError] = useState("");
     const [openMensagem, setOpenMensagem] = useState(false);
-    const ws = useRef(null);
 
     useEffect(() => {
         setParticipantes(message.metadata.participantes);
     }, [message.metadata.participantes]);
+
+    useEffect(() => {
+        if (message.isDeletedNotice) {
+            console.log(message)
+        }
+    }, [message]);
 
     useEffect(() => {
         setOpenConfirma(false)
@@ -63,31 +76,35 @@ export default function ChatMessage({ message, currentUser, setShowDetalhesEnque
         setIdEnquete(id);
     };
 
-    const handleEditMessage = useCallback(async (id) => {
-
-        console.log("Editar mensagem com ID:", id);
-
-        if (id) {
-            try {
-                const res = await api.get(`/messages/msg/${id}`);
-                const msgDados = res.data;
-                setMensagem(msgDados.content);
-                console.log(msgDados)
-            } catch {
-                setError("Erro ao buscar dados da mensagem.");
-            }
-        }
-        setOpenMensagem(false);
-    }, [
-        setMensagem,
-        setError,
-        setOpenMensagem
-    ]);
-
     useEffect(() => {
         const participante = message?.metadata?.participantes?.find(p => p.id === user.id);
         setOnSelect(participante?.opcao || null);
     }, [message, user.id]);
+
+    // const MEDIA_TYPES = ["image", "camera", "video", "file", "audio", "audioGrava", "enquete", "evento"];
+    // const iconByType = {
+    //         file: DocumentRefreshedThin,
+    //         video: VideoCallRefreshed,
+    //         image: ImageRefreshed,
+    //         camera: ImageRefreshed,
+    //         audio: KeyboardVoiceFilled,
+    //         audioGrava: KeyboardVoiceFilled,
+    //         enquete: PollRefreshedThin,
+    //         evento: ChatListEvent
+    //     };
+
+    // const getLabelByType = (type, currentTime = null) => {
+    //     if (type === "video") return currentTime + " Vídeo";
+    //     if (type === "file") return "Arquivo";
+    //     if (type === "audio" || type === "audioGrava") return currentTime;
+    //     return "Foto";
+    // };
+
+    // const isMedia = MEDIA_TYPES.includes(message?.metadata?.replyTo?.type);
+    // const Icon = iconByType[message?.metadata?.replyTo?.type];
+    // const iconColor = message?.metadata?.replyTo?.type === "audio" || message?.metadata?.replyTo?.type === "audioGrava"
+    //                         ? "#1DAA61"
+    //                         : "#00000099";
 
     return (
         <div
@@ -95,45 +112,108 @@ export default function ChatMessage({ message, currentUser, setShowDetalhesEnque
             data-message-id={message.id}
             data-receiver-id={message.receiver_id}
             data-read-at={message.read_at}
+            id={`message-${message.id}`}
+            style={{ padding: "0px 10px 0px 10px"}}
         >
             <div
-                className={`chat-message-bubble ${message.type === "image" || message.type === "camera" || message.type === "video" || message.type === "file" ? "img" : (message.type === "text" || message.type === "audio" || message.type === "audioGrava" ? "" : "enquete")}`}
+                className={`chat-message-bubble ${message.type === "image" || message.type === "camera" || message.type === "video" || message.type === "file" ? "img" : (message.type === "system" || message.type === "text" || message.type === "audio" || message.type === "audioGrava" ? "" : "enquete")} ${message.type === "system" ? "delete" : ""}`}
             >
-                <span className={`icon-chevron-list-msg ${isOwn ? "own" : "other"} ${openMoreOptions[`msg-${message.id}`] ? "active" : ""}`}>
-                    <MoreOptionMessage
-                        iconBotao="ArrowDropIcon"
-                        resetRef={moreOptionsRefs.current[message.id] = moreOptionsRefs.current[message.id] || React.createRef()}
-                        msgId={`msg-${message.id}`}
-                        dadosMensagem={{
-                            type: "deslizar",
-                            mensagem: message.content,
-                            id: message.id,
-                            created_at: message.created_at
-                        }}
-                        isOpenOptions={!!openMoreOptions[`msg-${message.id}`]}
-                        onToggleOptions={(open) => {
-                            setOpenMoreOptions(prev => ({ ...prev, [`msg-${message.id}`]: !!open }));
-                        }}
-                        editarMensagem={(open, payload) => {
-                            if (payload) {
-                                ws.current.send(JSON.stringify({
-                                    type: "message",
-                                    payload: {
-                                        id: payload.id,
-                                        senderId: user.id,
-                                        receiverId: chatId,
-                                        content: payload.content,
-                                        msgType: payload.type,
-                                        metadata: payload.metadata,
-                                    },
-                                }));
-                            }
-                        }}
-                        setDirection={isOwn ? "own" : "other"}
-                        setOpenMensagem={setOpenMensagem}
-                        chatId={chatId}
-                    />
-                </span>
+                {message.type !== "system" && (
+                    <span className={`icon-chevron-list-msg ${isOwn ? "own" : "other"} ${openMoreOptions[`msg-${message.id}`] ? "active" : ""}`}>
+                        <MoreOptionMessage
+                            iconBotao="ArrowDropIcon"
+                            resetRef={moreOptionsRefs.current[message.id] = moreOptionsRefs.current[message.id] || React.createRef()}
+                            msgId={message.id}
+                            dadosMensagem={{
+                                type: message.type,
+                                sender_id: message.sender_id,
+                                receiver_id: message.receiver_id,
+                                mensagem: message.content,
+                                metadata: message.metadata,
+                                id: message.id,
+                                created_at: getTime(message.created_at),
+                                read_at: message.read_at,
+                                autor: message.sender_id === user.id ? true : false,
+                            }}
+                            isOpenOptions={!!openMoreOptions[`msg-${message.id}`]}
+                            onToggleOptions={(open) => {
+                                setOpenMoreOptions(prev => ({ ...prev, [`msg-${message.id}`]: !!open }));
+                            }}
+                            editarMensagem={editarMensagem}
+                            setDirection={isOwn ? "own" : "other"}
+                            setOpenMensagem={setOpenMensagem}
+                            chatId={chatId}
+                            apagarMensagem={apagarMensagem}
+                            userId={user.id}
+                            fixarMensagem={fixarMensagem}
+                            isFixed={isFixed}
+                            setResponderMsg={setResponderMsg}
+                        />
+                    </span>
+                )}
+
+                {/* {message.metadata.replyTo && (
+                    <div className="resposta" style={{ marginTop: 0, marginBottom: 10, borderRadius: 5}} key={message.id}>
+                        <div className="labelAutor" style={{ marginBottom: 4}}>
+                            {user.id !== message.metadata.replyTo.sender_id ? message.metadata.replyTo.name : "Você"}
+                        </div>
+                        <div className="textoResposta" style={{ marginRight: isMedia && (message.metadata.replyTo.type === "video" || message.metadata.replyTo.type === "camera" || message.metadata.replyTo.type === "image") ? 70 : 0 }}>
+                            {isMedia && Icon && (
+                                <span style={{ marginBottom: 0, display: "inherit"}} aria-hidden="true" data-icon={`${message.metadata.replyTo.type}-refreshed`}>
+                                    <Icon size={24} color={iconColor} />
+                                </span>
+                            )}
+                            {message.metadata.replyTo.content === "[enquete]" ? (
+                                <span className="mensagem-resposta">
+                                    {message.metadata.replyTo.metadata?.pergunta}
+                                </span>
+                            ) : message.metadata.replyTo.content === "[evento]" ? (
+                                <span className="mensagem-resposta">
+                                    {message.metadata.replyTo.metadata?.titulo} • {formatarDataPersonalizada(`${message.metadata.replyTo.metadata.dataInicio}T${message.metadata.replyTo.metadata.horaInicio}:00`)}
+                                </span>
+                            ) : message.metadata.replyTo.content !== "[uploaded file]" && message.metadata.replyTo.content !== "[uploaded audio]" ? (
+                                <span className="mensagem-resposta">
+                                    {message.metadata.replyTo.content.length > 40
+                                        ? `${message.metadata.replyTo.content.substring(0, 40)}...`
+                                        : message.metadata.replyTo.content}
+                                </span>
+                            ) : (
+                                <span className="mensagem-resposta">
+                                    {getLabelByType(message.metadata.replyTo.type, message.metadata.replyTo.currentTime)}
+                                </span>
+                            )}
+                        </div>
+
+                        {isMedia && (
+                            <span className="box-imagem-preview-resposta" style={{ right: 0 }}>
+                                {message.metadata.replyTo.type === "video" && (
+                                    <video
+                                        src={`${API_URL}/uploads/messages/${message.metadata.replyTo.metadata.fileName}`}
+                                        className="img-preview-resposta msgR"
+                                        style={{ maxWidth: "100%", cursor: "zoom-in",  }}
+                                        controls={false}
+                                    />
+                                )}
+                                
+                                {(message.metadata.replyTo.type === "image" || message.metadata.replyTo.type === "camera") && (
+                                    <img
+                                        src={`${API_URL}/uploads/messages/${message.metadata.replyTo.metadata.fileName}`}
+                                        alt="respondida"
+                                        className="img-preview-resposta msgR"
+                                    />
+                                )}
+                            </span>
+                        )}
+                    </div>
+                )} */}
+
+                <MessageReplyPreview
+                    replyTo={message.metadata.replyTo}
+                    userId={user.id}
+                    API_URL={API_URL}
+                    isPreview={false}
+                    nomeChat={nomeChat}
+                />
 
                 {(message.type === "image" || message.type === "camera") ? (
                     <div className="container-img-sender">
@@ -158,19 +238,18 @@ export default function ChatMessage({ message, currentUser, setShowDetalhesEnque
                     </div>
                 ) : message.type === "video" ? (
                     <div className="container-img-sender">
-                        <video
-                            autoPlay={false}
+                        <VideoMessageBubble
                             src={`${API_URL}/uploads/messages/${message.metadata.fileName}`}
-                            style={{ maxWidth: "100%", borderRadius: 8, cursor: "zoom-in" }}
-                            onClick={() =>
-                                openImageModal(`${API_URL}/uploads/messages/${message.metadata.fileName}`, "video")
-                            }
-                            onError={(e) => {
-                                e.currentTarget.src =
-                                    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'><rect width='100%' height='100%' fill='%23eee'/></svg>";
+                            onClick={() => openImageModal(`${API_URL}/uploads/messages/${message.metadata.fileName}`, "video")}
+                            onTimeUpdate={(time) => {
+                                setResponderMsg(prev =>
+                                    prev.map(m =>
+                                        m.id === message.id ? { ...m, currentTime: time } : m
+                                    )
+                                );
                             }}
-                            controls={false}
                         />
+
                         {message.content !== "[uploaded file]" ? (
                             <span className="text-file">
                                 {message.content}
@@ -178,13 +257,21 @@ export default function ChatMessage({ message, currentUser, setShowDetalhesEnque
                         ) : (
                             <div className="degradee"></div>
                         )}
-                        <div className="degradee"></div>
                     </div>
                 ) : message.type === "audio" || message.type === "audioGrava" ? (
                     <AudioMessageBubble
                         src={`/uploads/messages/${message.metadata.fileName}`}
                         time={message.created_at}
                         tipo={message.type}
+                        onTimeUpdate={(time) => {
+                            setResponderMsg(prev =>
+                                prev.map(m =>
+                                    m.id === message.id
+                                        ? { ...m, currentTime: time }
+                                        : m
+                                )
+                            );
+                        }}
                     />
                 ) : message.type === "file" ? (
                     <>
@@ -278,7 +365,7 @@ export default function ChatMessage({ message, currentUser, setShowDetalhesEnque
                         <div style={{ paddingLeft: 10, }}>
                             <div className="pergunta">{message.metadata.titulo}</div>
                             <ul className="listaEvento">
-                                <li>{message.metadata.dataInicio} às {message.metadata.horaInicio}</li>
+                                <li>{formatarDataPersonalizada(`${message.metadata.dataInicio}T${message.metadata.horaInicio}:00`)}</li>
                                 <li>{message.metadata.local}</li>
                                 <li>{message.metadata.link ? 'Ligação de vídeo do WhatsApp' : ''}</li>
                                 <li>
@@ -305,21 +392,31 @@ export default function ChatMessage({ message, currentUser, setShowDetalhesEnque
                             </ul>
                         </div>
                     </div>
+
+                ) : message.type === "system" ? (
+                    <span>
+                        <em>{message.content}</em>
+                    </span>
                 ) : (
-                    <span>{message.content}</span>
+                    <span style={{marginRight: 20}}>{message.content}</span>
                 )}
-                {(!isOwn || isOwn) && (
-                    <span className={`message-time ${isOwn ? "send" : ""} ${(message.type === "enquete" || message.type === "evento") && "bottom"}`}>
+                {((!isOwn || isOwn) && !message.isDeletedNotice) && (
+                    <span className={`message-time ${isOwn ? "send" : "receive"} ${(message.type === "enquete" || message.type === "evento") ? "bottom" : ""} ${(message.type === "image" || message.type === "camera" || message.type === "video" || message.type === "file")  ? "fileFixed" : ""} ${ message.content === "[uploaded file]" && message.type !== "file" && message.type !== "audio" ? "noText" : "" }`}>
                         {getTime(message.created_at)}
                     </span>
                 )}
-                {isOwn && (
+                {isFixed && (
+                    <span className={`message-fixed ${isOwn ? "send" : ""} ${(message.type === "enquete" || message.type === "evento") ? "bottom" : ""}`}>
+                        <PinnedSmallIcon size={16} color="gray" />
+                    </span>
+                )}
+                {(isOwn && !message.isDeletedNotice) && (
                     message.read_at ? (
-                        <span className={`message-status lida ${(message.type === "enquete" || message.type === "evento") && "bottom"}`}>
+                        <span className={`message-status lida ${(message.type === "enquete" || message.type === "evento") ? "bottom" : ""}`}>
                             <MsgDoubleCheckIcon size={16} color="#007BFC" />
                         </span>
                     ) : (
-                        <span className={`message-status ${(message.type === "enquete" || message.type === "evento") && "bottom"}`}>
+                        <span className={`message-status ${(message.type === "enquete" || message.type === "evento") ? "bottom" : ""} ${ message.content === "[uploaded file]" ? "noText" : "" }`}>
                             <MsgDoubleCheckIcon size={16} color={`${message.type === "image" && message.content === "[uploaded file]" ? "#fff" : "gray"}`} />
                         </span>
                     )

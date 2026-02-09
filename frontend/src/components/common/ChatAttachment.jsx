@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, use } from "react";
 import { createPortal } from "react-dom";
 import MediaFilledRefreshed from "./icons/MediaFilledRefreshed";
 import VideoCallRefreshed from "./icons/VideoCallRefreshed";
@@ -16,11 +16,12 @@ import PollRefreshed from "./icons/PollRefreshed";
 import AlertModal from "./AlertModal";
 import EmojiDropdown from "./EmojiDropdown";
 import useAuth from "../../context/useAuth";
+import { toLocalISOString } from "../../utils/helpers";
 
 // import api from '../../api/api';
 import "./ChatAttachment.css";
 
-export default function ChatAttachment({ chatId, isOpenAttachment, onToggleAttachment, previewFile, setPreviewFile, resetRef, openEvento, idEvento, setIdEvento, setOpenEvento, openEnquete, setOpenEnquete, idEnquete, setIdEnquete }) {
+export default function ChatAttachment({ chatId, isOpenAttachment, onToggleAttachment, previewFile, setPreviewFile, resetRef, openEvento, idEvento, setIdEvento, setOpenEvento, openEnquete, setOpenEnquete, idEnquete, setIdEnquete, responderMsg }) {
   const wrapperRef = useRef(null);
   const fileInputRef = useRef(null);
   // const [previewFile, setPreviewFile] = useState(null);
@@ -54,6 +55,8 @@ export default function ChatAttachment({ chatId, isOpenAttachment, onToggleAttac
   const [pergunta, setPergunta] = useState("");
   const [respostas, setRespostas] = useState([]);
   const [respostaTexts, setRespostaTexts] = useState([]);
+
+  const [hasChatResponder, setHasChatResponder] = useState(false);
 
   const handleChange = () => {
     setIsChecked((prev) => !prev);
@@ -291,6 +294,7 @@ export default function ChatAttachment({ chatId, isOpenAttachment, onToggleAttac
     if (idEvento) {
       try {
         const res = await api.get(`/messages/evento/${idEvento}`);
+        console.log("Dados do evento recebidos:", res.data);
         const eventoDados = res.data;
         setTitulo(eventoDados.metadata?.titulo);
         setDescricao(eventoDados.metadata?.descricao);
@@ -364,6 +368,9 @@ export default function ChatAttachment({ chatId, isOpenAttachment, onToggleAttac
   useEffect(() => {
     if (!isOpenAttachment) return;
 
+    const exists = responderMsg.some(msg => msg.chatId === chatId);
+    setHasChatResponder(exists);
+
     function handleClickOutside(event) {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
         onToggleAttachment(false);
@@ -375,7 +382,7 @@ export default function ChatAttachment({ chatId, isOpenAttachment, onToggleAttac
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isOpenAttachment, onToggleAttachment]);
+  }, [isOpenAttachment, onToggleAttachment, responderMsg, chatId]);
 
   const options = [
     {
@@ -546,7 +553,8 @@ export default function ChatAttachment({ chatId, isOpenAttachment, onToggleAttac
               id: user.id,
               nome: user.name,
               imagem: user.image,
-              opcao: "vou"
+              opcao: "vou",
+              createdAt: toLocalISOString()
             }
           ]
         }
@@ -682,7 +690,7 @@ export default function ChatAttachment({ chatId, isOpenAttachment, onToggleAttac
   }, [showDataFinal]);
 
   const previewModal = previewFile && (
-    <div className="preview-modal">
+    <div className="preview-modal" style={{ bottom: hasChatResponder ? -136 : -76 }}>
       <div className={`preview-content ${!previewFile?.type?.startsWith("image/") && "video"} ${selectedOption === "enquete" && "enquete"} ${selectedOption === "evento" && "evento"}`}>
 
         {(selectedOption === "image" || selectedOption === "camera") && (

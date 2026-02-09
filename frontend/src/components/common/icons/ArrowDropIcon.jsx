@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function ArrowDropIcon({ size = 24, color = "#000000" }) {
+export default function ArrowDropIcon({ size = 24, color = "#ffffff" }) {
     return (
         <svg
             viewBox="0 0 20 20"

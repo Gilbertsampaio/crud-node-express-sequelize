@@ -44,3 +44,9 @@
   background: #880808;
   transition: all .3s ease;
 }
+
+.image-modal-close svg {
+  fill: #fff;
+  width: 14px;
+  height: 14px;
+}

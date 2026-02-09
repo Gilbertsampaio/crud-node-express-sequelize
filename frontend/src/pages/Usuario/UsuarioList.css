@@ -33,6 +33,25 @@
     cursor: zoom-in;
 }
 
+.box-imagem-preview-resposta {
+    position: absolute;
+    top: 0;
+    right: 50px;
+    bottom: 0
+}
+
+.img-preview-resposta {
+    width: 70px;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0px;
+    border-radius: 0 !important;
+}
+
+.img-preview-resposta.msgR {
+    border-radius: 0 5px 5px 0 !important;
+}
+
 .video-preview {
     width: 50%;
     height: 180px;

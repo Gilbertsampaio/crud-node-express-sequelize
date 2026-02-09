@@ -321,6 +321,12 @@
     color: #0A0A0A;
 }
 
+.nomeParticipantes {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
 .listaEvento {
     list-style: none;
 }
@@ -357,6 +363,11 @@
     align-self: auto;
     flex-grow: 0;
     background-color: rgba(194, 189, 184, .15);
+}
+
+.imgEvento.preview {
+    background: inherit;
+    justify-content: start;
 }
 
 .containerEventoInfo .image {

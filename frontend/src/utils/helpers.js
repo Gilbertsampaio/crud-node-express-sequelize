@@ -21,23 +21,23 @@ export function limitarTexto(texto, maxLength = 50, considerarExtensao = false) 
   return texto.slice(0, maxLength - 3) + "...";
 }
 
+export function toLocalISOString(date = new Date()) {
+    const pad = n => String(n).padStart(2, "0");
+
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+
 export function formatarDataPersonalizada(dataISO) {
   const data = new Date(dataISO);
   const agora = new Date();
 
-  // Ajuste de fuso (opcional: BR -3h)
-  const offset = data.getTimezoneOffset() / 60;
-  data.setHours(data.getHours() - offset);
-
   const mesmoDia = data.toDateString() === agora.toDateString();
 
-  // Criar data de ontem
   const ontem = new Date(agora);
   ontem.setDate(agora.getDate() - 1);
 
   const mesmoOntem = data.toDateString() === ontem.toDateString();
 
-  // Formatar hora
   const hora = data.toLocaleTimeString("pt-BR", {
     hour: "2-digit",
     minute: "2-digit",
@@ -45,18 +45,22 @@ export function formatarDataPersonalizada(dataISO) {
 
   if (mesmoDia) {
     return `Hoje às ${hora}`;
-  } else if (mesmoOntem) {
-    return `Ontem às ${hora}`;
-  } else {
-    const dia = data.getDate();
-    const mes = data.toLocaleString("pt-BR", { month: "short" });
-    return `${dia} de ${mes} às ${hora}`;
   }
+
+  if (mesmoOntem) {
+    return `Ontem às ${hora}`;
+  }
+
+  const dia = String(data.getDate()).padStart(2, "0");
+  const mes = data.toLocaleString("pt-BR", { month: "long" });
+  const ano = data.getFullYear();
+
+  return `${dia} de ${mes} de ${ano}, ${hora}`;
 }
 
 export function getTime(timestamp) {
-  const date = new Date(timestamp);
-  const hours = date.getUTCHours().toString().padStart(2, '0');
-  const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-  return `${hours}:${minutes}`;
+  return new Date(timestamp).toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }

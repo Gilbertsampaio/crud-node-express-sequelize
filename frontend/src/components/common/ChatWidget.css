@@ -70,14 +70,30 @@
   background-color: #fff;
   box-shadow: 0 1px 6px #0000001f;
   width: calc(100% - 0px);
-  padding: 18px 20px 0px 100px;
+  padding: 0 10px;
   border: none;
   color: rgb(0 0 0/.9);
-  border-radius: 2.5rem;
+  border-radius: 1rem;
   box-sizing: border-box;
   transition: box-shadow 84ms cubic-bezier(.34, 0, .21, 1);
   outline: none;
   line-height: 10px;
+}
+
+.chat-message-textarea {
+  background-color: transparent;
+  /* box-shadow: 0 1px 6px #0000001f; */
+  width: calc(100% - 0px);
+  padding: 15px 20px 15px 100px;
+  border: none;
+  color: rgb(0 0 0/.9);
+  /* border-radius: 2.5rem; */
+  box-sizing: border-box;
+  transition: box-shadow 84ms cubic-bezier(.34, 0, .21, 1);
+  outline: none;
+  line-height: 5px;
+  min-height: 40px;
+  margin-top: 10px;
 }
 
 .chat-message-preview {
@@ -329,7 +345,7 @@
   font-size: 18px;
   cursor: pointer;
   color: #333;
-  padding: 1rem 0.5rem .8rem;
+  padding: .8rem 0.5rem .8rem;
   transition: all .3s ease;
 }
 
@@ -356,7 +372,7 @@
 
 .chat-body {
   flex: 1;
-  padding: 10px;
+  padding: 10px 0;
   overflow-y: auto;
   min-height: 300px;
   max-height: 300px;
@@ -446,6 +462,11 @@
   margin: 20px 0;
 }
 
+.chat-message-row:last-child {
+  display: flex;
+  margin: 20px 0 0px !important;
+}
+
 .chat-message-row.own {
   justify-content: flex-end;
 }
@@ -456,7 +477,7 @@
 
 .chat-message-bubble {
   max-width: 70%;
-  padding: 8px 20px 8px 12px;
+  padding: 8px 8px 8px 12px;
   border-radius: 15px;
   line-height: 1.4;
   word-wrap: break-word;
@@ -465,7 +486,16 @@
   min-height: 50px;
 }
 
-.chat-message-bubble span:first-child {
+.chat-message-bubble.delete {
+  min-height: 30px;
+}
+
+.chat-message-bubble.delete span {
+  margin-bottom: 0 !important;
+  color: #888;
+}
+
+.chat-message-bubble span:first-child:not(.audio-time) {
   display: block;
   margin-bottom: 10px;
 }
@@ -484,9 +514,9 @@
   line-height: 0;
 }
 
-.chat-message-bubble img {
-  height: 200px;
-  width: 200px;
+.chat-message-bubble img:not(.img-preview-resposta) {
+  height: 300px;
+  width: 100%;
   object-fit: cover;
   object-position: center;
   border-radius: 12px 12px 5px 12px;
@@ -573,7 +603,7 @@
   position: absolute;
   bottom: 0px;
   right: 2px;
-  z-index: 0;
+  z-index: 3;
 }
 
 .chat-message-bubble .message-time {
@@ -583,7 +613,21 @@
   position: absolute;
   bottom: 2px;
   right: 10px;
+  z-index: 3;
+}
+
+.chat-message-bubble .message-fixed {
+  margin-left: 5px;
+  font-size: 12px;
+  color: #929292;
+  position: absolute;
+  bottom: -1px;
+  right: 41px;
   z-index: 0;
+}
+
+.chat-message-bubble .message-fixed.send {
+  right: 53px;
 }
 
 .chat-message-bubble .message-time.send {
@@ -614,6 +658,44 @@
 .chat-message-bubble.img .message-status {
   bottom: 8px;
   right: 8px;
+}
+
+.chat-message-bubble .message-time.fileFixed {
+  bottom: 15px;
+  right: 30px;
+  color: #fff;
+}
+
+.chat-message-bubble .message-time.send.fileFixed {
+  color: #929292;
+}
+
+.chat-message-bubble .message-time.receive.noText {
+  bottom: 13px !important;
+}
+
+.chat-message-bubble .message-time.noText,
+.chat-message-bubble .message-status.noText {
+  color: #fff !important;
+}
+
+.video-bubble {
+  position: relative
+}
+
+.video-info {
+  position: absolute;
+  bottom: 2px;
+  left: 10px;
+  color: #fff;
+  font-size: 12px;
+  z-index: 3;
+}
+
+.chat-message-bubble .message-time.receive.fileFixed {
+  bottom: 10px;
+  right: 10px;
+  color: #929292;
 }
 
 .chat-overlay {
@@ -845,8 +927,8 @@
 
 .text-file {
   display: block;
-  padding: 10px 0;
-  margin: 10px 10px 5px;
+  padding: 10px 0 20px 0;
+  margin: 0px 10px 0px;
   line-height: 20px;
 }
 
@@ -1009,25 +1091,25 @@
   top: 0px;
   right: -5px;
   opacity: 0;
-  background: #D9FDD3;
+  /* background: #D9FDD3; */
   z-index: 1;
-  border-bottom-left-radius: 100%;
-  box-shadow: -5px 5px 6px #D9FDD3;
+  /* border-bottom-left-radius: 100%; */
+  /* box-shadow: -5px 5px 6px #D9FDD3; */
   padding: 0px 12px !important;
 }
 
 .icon-chevron-list-msg.other {
-  border-bottom-left-radius: 100%;
-  border-top-right-radius: 100%;
-  background: #FFFFFF;
-  box-shadow: -5px 5px 6px #FFFFFF;
+  border-bottom-left-radius: 20px;
+  border-top-right-radius: 20px;
+  /* background: #FFFFFF; */
+  /* box-shadow: -2px 2px 6px #FFFFFF; */
 }
 
 .chat-message-bubble:hover .icon-chevron-list-msg,
 .chat-message-bubble .icon-chevron-list-msg.active {
   visibility: visible;
   transition: all .1s ease;
-  right: 0px;
+  right: 5px;
   opacity: 1;
 }
 
@@ -1112,4 +1194,87 @@
 
 .btn-cancel {
   background: #444;
+}
+
+.resposta {
+  min-height: 50px;
+  padding: 10px 10px;
+  background: rgba(194, 189, 184, .15);
+  border-left: 5px solid #1daa61;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+  position: relative;
+  margin-top: 10px;
+  min-width: 150px;
+}
+
+.resposta .labelAutor {
+  color: #1daa61;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.resposta .textoResposta {
+  color: #00000099;
+  font-size: 12px;
+  display: flex;
+  justify-content: start;
+  align-items: center;
+  gap: 3px;
+}
+
+.resposta .options-footer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  outline: none;
+  overflow: hidden;
+  position: absolute;
+  right: 10px;
+  top: 5px;
+  transition: all .3s ease;
+}
+
+.resposta .options-footer:hover {
+  background: #dcd9d9 !important;
+  transition: all .3s ease;
+}
+
+.resposta .options-footer .icon-container {
+  display: flex;
+  position: relative;
+  width: 19px;
+  height: 23px;
+}
+
+/* Posi??o dos ?cones */
+.resposta .options-footer .icon-container svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: transform 220ms cubic-bezier(.2, .9, .2, 1), opacity 220ms ease;
+  transform-origin: center center;
+  width: 20px;
+}
+
+.highlight-message {
+  animation: highlightFade 1.5s ease;
+  background-color: rgba(29, 170, 97, 0.15);
+  padding: 0px 10px 0px 10px;
+}
+
+@keyframes highlightFade {
+  0% {
+    background-color: rgba(29, 170, 97, 0.35);
+  }
+  100% {
+    background-color: transparent;
+  }
 }

@@ -3,6 +3,7 @@ import ChevronIcon from "./icons/ChevronIcon";
 import "./EventoConfirma.css";
 import api from '../../api/api';
 import useAuth from "../../context/useAuth";
+import { toLocalISOString } from "../../utils/helpers";
 
 export default function EventoConfirma({
     mensagemId,
@@ -129,7 +130,8 @@ export default function EventoConfirma({
                 id: user.id,
                 nome: user.name,
                 imagem: user.image,
-                opcao: optionId
+                opcao: optionId,
+                createdAt: toLocalISOString()
             }
         }
 

@@ -24,9 +24,17 @@ import SendFilledIcon from "./icons/SendFilledIcon";
 import MaximizeSmallIcon from "./icons/MaximizeSmallIcon";
 import MinimizeSmallIcon from "./icons/MinimizeSmallIcon";
 import CloseRoundedIcon from "./icons/CloseRoundedIcon";
+import ImageRefreshed from "./icons/ImageRefreshed";
+import VideoCallRefreshed from "./icons/VideoCallRefreshed";
+import DocumentRefreshedThin from "./icons/DocumentRefreshedThin";
+import KeyboardVoiceFilled from "./icons/KeyboardVoiceFilled";
+import PollRefreshedThin from "./icons/PollRefreshedThin";
+import ChatListEvent from "./icons/ChatListEvent";
+
 import MicOutlined from "./icons/MicOutlined";
 import StarIcon from "./icons/StarIcon";
 
+import { formatarDataPersonalizada } from "../../utils/helpers";
 import BlockRefreshedIcon from "./icons/BlockRefreshedIcon";
 import ChatAttachment from "./ChatAttachment";
 import EmojiDropdown from "./EmojiDropdown";
@@ -35,6 +43,7 @@ import MoreOptionChat from "./MoreOptionChat";
 import AudioRecorderBubble from "./AudioRecorderBubble";
 import DetalhesEnquete from "./DetalhesEnquete";
 import DetalhesEvento from "./DetalhesEvento";
+import MessageReplyPreview from "./MessageReplyPreview";
 
 export default function ChatWidget() {
     const [open, setOpen] = useState(false);
@@ -76,6 +85,27 @@ export default function ChatWidget() {
     const [hideDropConfirma, setHideDropConfirma] = useState(false);
     const [openEvento, setOpenEvento] = useState(false);
     const [openEnquete, setOpenEnquete] = useState(false);
+    const [responderMsg, setResponderMsg] = useState([]);
+
+    const MEDIA_TYPES = ["image", "camera", "video", "file", "audio", "audioGrava", "enquete", "evento"];
+
+    const iconByType = {
+        file: DocumentRefreshedThin,
+        video: VideoCallRefreshed,
+        image: ImageRefreshed,
+        camera: ImageRefreshed,
+        audio: KeyboardVoiceFilled,
+        audioGrava: KeyboardVoiceFilled,
+        enquete: PollRefreshedThin,
+        evento: ChatListEvent
+    };
+
+    const getLabelByType = (type, currentTime = null) => {
+        if (type === "video") return currentTime + " Vídeo";
+        if (type === "file") return "Arquivo";
+        if (type === "audio" || type === "audioGrava") return currentTime;
+        return "Foto";
+    };
 
     const ws = useRef(null);
 
@@ -718,6 +748,12 @@ export default function ChatWidget() {
         return updated;
     });
 
+    const closeResposta = (idResposta) => {
+        setResponderMsg(prev =>
+            prev.filter(msg => msg.id !== idResposta)
+        );
+    };
+
     const closeChat = id => {
         setChats(prev => {
             const updated = prev.filter(c => c.id !== id);
@@ -786,6 +822,11 @@ export default function ChatWidget() {
             msgType: "text",
             metadata: {}
         };
+
+        if (responderMsg.filter(msg => msg.receiver_id === chatId || msg.sender_id === chatId).length > 0) {
+            message.metadata.replyTo = responderMsg[0];
+            closeResposta(responderMsg[0].id);
+        }
 
         if (ws.current && ws.current.readyState === WebSocket.OPEN) {
             ws.current.send(JSON.stringify({ type: "message", payload: message }));
@@ -1279,10 +1320,43 @@ export default function ChatWidget() {
                                             ref={el => (chatBodyRefs.current[c.id] = el)}
                                         >
                                             <div className="container-chat">
-                                                {c.messages?.map((m, idx) => {
-                                                    return (
+                                                {(() => {
+                                                    if (!c.messages) return null;
+
+                                                    // Processa todas as mensagens
+                                                    const processedMessages = c.messages.flatMap(m => {
+                                                        const hideTo = m?.metadata?.hideTo;
+                                                        const isHidden = Array.isArray(hideTo) && hideTo.some(h => Number(h.userId) === Number(user.id));
+
+                                                        const fixedTo = m?.metadata?.fixedTo;
+                                                        const isFixed = Array.isArray(fixedTo) && fixedTo.some(h => Number(h.userId) === Number(user.id));
+
+                                                        if (isHidden) {
+                                                            return [{
+                                                                id: `deleted-${m.id}`,
+                                                                sender_id: m.sender_id,
+                                                                receiver_id: m.receiver_id,
+                                                                content: "Mensagem apagada",
+                                                                type: "system",
+                                                                metadata: { deletedFor: user.id },
+                                                                isDeletedNotice: true,
+                                                                isFixed: false
+                                                            }];
+                                                        }
+
+                                                        return [{ ...m, isFixed }];
+                                                    });
+
+                                                    // Separa fixadas e normais
+                                                    const fixedMessages = processedMessages.filter(m => m.isFixed);
+                                                    const normalMessages = processedMessages.filter(m => !m.isFixed);
+
+                                                    // Junta fixadas primeiro, depois normais
+                                                    const messagesToRender = [...fixedMessages, ...normalMessages];
+
+                                                    return messagesToRender.map((m, idx) => (
                                                         <ChatMessage
-                                                            key={idx}
+                                                            key={m.id || idx}
                                                             message={m}
                                                             currentUser={user}
                                                             setShowDetalhesEnquete={setShowDetalhesEnquete}
@@ -1294,9 +1368,57 @@ export default function ChatWidget() {
                                                             setOpenEvento={setOpenEvento}
                                                             setOpenEnquete={setOpenEnquete}
                                                             chatId={c.id}
+                                                            editarMensagem={(payload) => {
+                                                                if (payload) {
+                                                                    ws.current.send(JSON.stringify({
+                                                                        type: "message",
+                                                                        payload: {
+                                                                            id: payload.id,
+                                                                            senderId: user.id,
+                                                                            receiverId: c.id,
+                                                                            content: payload.content,
+                                                                            msgType: payload.type,
+                                                                            metadata: payload.metadata,
+                                                                        },
+                                                                    }));
+                                                                }
+                                                            }}
+                                                            apagarMensagem={(payload) => {
+                                                                if (payload) {
+                                                                    ws.current.send(JSON.stringify({
+                                                                        type: "message",
+                                                                        payload: {
+                                                                            id: payload.id,
+                                                                            senderId: payload.sender_id,
+                                                                            receiverId: payload.receiver_id,
+                                                                            content: payload.content,
+                                                                            msgType: payload.type,
+                                                                            metadata: payload.metadata,
+                                                                        },
+                                                                    }));
+                                                                }
+                                                            }}
+                                                            fixarMensagem={(payload) => {
+                                                                if (payload) {
+                                                                    ws.current.send(JSON.stringify({
+                                                                        type: "message",
+                                                                        payload: {
+                                                                            id: payload.id,
+                                                                            senderId: payload.sender_id,
+                                                                            receiverId: payload.receiver_id,
+                                                                            content: payload.content,
+                                                                            msgType: payload.type,
+                                                                            metadata: payload.metadata,
+                                                                        },
+                                                                    }));
+                                                                }
+                                                            }}
+                                                            isFixed={m.isFixed}
+                                                            setResponderMsg={setResponderMsg}
+                                                            nomeChat={c.name}
                                                         />
-                                                    );
-                                                })}
+                                                    ));
+                                                })()}
                                                 {/* Exibe apenas UMA vez no final */}
                                                 {blockChats[c.id] && (
                                                     <div className="chat-message-row">
@@ -1317,16 +1439,120 @@ export default function ChatWidget() {
                                             </div>
                                         </div>
                                     </div>
+
                                     {/* ref={el => (chatBodyRefs.current[c.id] = el)} */}
                                     {!blockChats[c.id] && !blockChatsMsg[c.id] && (
                                         <div className="chat-footer">
-                                            <div className="container-chat">
+                                            <div className="container-chat chat-message">
+                                                {responderMsg
+                                                    .filter(msg => msg.receiver_id === c.id || msg.sender_id === c.id)
+                                                    .map(msg => {
+                                                        // const isMedia = MEDIA_TYPES.includes(msg.type);
+                                                        // const Icon = iconByType[msg.type];
+                                                        // const iconColor = msg.type === "audio" || msg.type === "audioGrava"
+                                                        //                         ? "#1DAA61"
+                                                        //                         : "#00000099";
+
+                                                        return (
+                                                            <MessageReplyPreview
+                                                                replyTo={msg}
+                                                                userId={user.id}
+                                                                API_URL={API_URL}
+                                                                setResponderMsg={setResponderMsg}
+                                                                isPreview={true}
+                                                                nomeChat={c.name}
+                                                            />
+                                                        );
+
+                                                        // return (
+                                                        //     <div className="resposta" key={msg.id}>
+                                                        //         <div className="labelAutor">
+                                                        //             {user.id !== msg.sender_id ? c.name : "Você"}
+                                                        //         </div>
+
+                                                        //         <div className="textoResposta">
+                                                        //             {isMedia && Icon && (
+                                                        //                 <span aria-hidden="true" data-icon={`${msg.type}-refreshed`}>
+                                                        //                     <Icon size={24} color={iconColor} />
+                                                        //                 </span>
+                                                        //             )}
+
+                                                        //             {msg.content === "[enquete]" ? (
+                                                        //                 <span className="mensagem-resposta">
+                                                        //                     {msg.metadata?.pergunta}
+                                                        //                 </span>
+                                                        //             ) : msg.content === "[evento]" ? (
+                                                        //                 <span className="mensagem-resposta">
+                                                        //                     {msg.metadata?.titulo} • {formatarDataPersonalizada(`${msg.metadata.dataInicio}T${msg.metadata.horaInicio}:00`)}
+                                                        //                 </span>
+                                                        //             ) : msg.content !== "[uploaded file]" && msg.content !== "[uploaded audio]" ? (
+                                                        //                 <span className="mensagem-resposta">
+                                                        //                     {msg.content.length > 40
+                                                        //                         ? `${msg.content.substring(0, 40)}...`
+                                                        //                         : msg.content}
+                                                        //                 </span>
+                                                        //             ) : (
+                                                        //                 <span className="mensagem-resposta">
+                                                        //                     {getLabelByType(msg.type, msg.currentTime)}
+                                                        //                 </span>
+                                                        //             )}
+                                                        //         </div>
+
+                                                        //         {isMedia && (
+                                                        //             <span className="box-imagem-preview-resposta">
+                                                        //                 {msg.type === "video" && (
+                                                        //                     <video
+                                                        //                         src={`${API_URL}/uploads/messages/${msg.metadata.fileName}`}
+                                                        //                         className="img-preview-resposta"
+                                                        //                         style={{ maxWidth: "100%", borderRadius: 8, cursor: "zoom-in" }}
+                                                        //                         controls={false}
+                                                        //                     />
+                                                        //                 )}
+
+                                                        //                 {(msg.type === "image" || msg.type === "camera") && (
+                                                        //                     <img
+                                                        //                         src={`${API_URL}/uploads/messages/${msg.metadata.fileName}`}
+                                                        //                         alt="respondida"
+                                                        //                         className="img-preview-resposta"
+                                                        //                     />
+                                                        //                 )}
+                                                        //             </span>
+                                                        //         )}
+
+                                                        //         <button
+                                                        //             onClick={() => closeResposta(msg.id)}
+                                                        //             type="button"
+                                                        //             aria-expanded="false"
+                                                        //             className="options-footer"
+                                                        //         >
+                                                        //             <div className="icon-container">
+                                                        //                 <svg
+                                                        //                     xmlns="http://www.w3.org/2000/svg"
+                                                        //                     height="24"
+                                                        //                     width="24"
+                                                        //                     viewBox="0 0 24 24"
+                                                        //                     fill="#0A0A0A"
+                                                        //                 >
+                                                        //                     <path d="M18.3 5.71c-.39-.39-1.02-.39-1.41 0L12 10.59 7.11 5.7a.996.996 0 1 0-1.41 1.41L10.59 12l-4.9 4.89a.996.996 0 1 0 1.41 1.41L12 13.41l4.89 4.9c.39.39 1.02.39 1.41 0a.996.996 0 0 0 0-1.41L13.41 12l4.89-4.89c.39-.39.39-1.02 0-1.4Z" />
+                                                        //                 </svg>
+                                                        //             </div>
+                                                        //         </button>
+                                                        //     </div>
+                                                        // );
+                                                    })}
                                                 <textarea
+                                                    style={{ marginTop: 10 }}
                                                     ref={el => (textareaRefs.current[c.id] = el)}
                                                     placeholder="Digite sua mensagem..."
-                                                    className="chat-message"
+                                                    className="chat-message-textarea"
                                                     value={inputs[c.id] || ""}
                                                     onChange={(e) => handleInputChange(c.id, e.target.value)}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === "Enter" && !e.shiftKey) {
+                                                            e.preventDefault(); // evita a quebra de linha
+                                                            handleSendMessage(c.id); // envia a mensagem
+                                                        }
+                                                    }}
                                                 />
 
                                                 <ChatAttachment
@@ -1360,6 +1586,7 @@ export default function ChatWidget() {
                                                     setOpenEnquete={setOpenEnquete}
                                                     idEnquete={idEnquete}
                                                     setIdEnquete={setIdEnquete}
+                                                    responderMsg={responderMsg}
                                                 />
                                                 <EmojiDropdown
                                                     chatIdEmoji={c.id}
@@ -1379,6 +1606,12 @@ export default function ChatWidget() {
                                                         chatId={c.id}
                                                         onToggleAttachment={(payload) => {
                                                             if (payload) {
+
+                                                                if (responderMsg.filter(msg => msg.receiver_id === c.id || msg.sender_id === c.id).length > 0) {
+                                                                    payload.metadata.replyTo = responderMsg[0];
+                                                                    closeResposta(responderMsg[0].id);
+                                                                }
+                                                                
                                                                 ws.current.send(JSON.stringify({
                                                                     type: "message",
                                                                     payload: {

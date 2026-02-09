@@ -7,6 +7,7 @@ import DeleteRefreshed from "./icons/DeleteRefreshed";
 import IcMood from "./icons/IcMood";
 import ForwardRefreshed from "./icons/ForwardRefreshed";
 import PinRefreshedIcon from "./icons/PinRefreshedIcon";
+import UnpinRefreshedIcon from "./icons/UnpinRefreshedIcon";
 import StarRefreshed from "./icons/StarRefreshed";
 import MoreRefreshed from "./icons/MoreRefreshed";
 import PencilRefreshed from "./icons/PencilRefreshed";
@@ -15,6 +16,7 @@ import CloseRoundedIcon from "./icons/CloseRoundedIcon";
 import EmojiDropdown from "./EmojiDropdown";
 import SendFilledIcon from "./icons/SendFilledIcon";
 import AlertModal from "./AlertModal";
+import MsgDoubleCheckIcon from "./icons/MsgDoubleCheckIcon";
 
 const icons = {
     MoreRefreshed,
@@ -35,7 +37,12 @@ export default function ChatAttachment({
     editarMensagem,
     setDirection,
     setOpenMensagem,
-    chatId
+    chatId,
+    apagarMensagem,
+    userId,
+    fixarMensagem,
+    isFixed,
+    setResponderMsg,
 }) {
     const wrapperRef = useRef(null);
     const [selectedOption, setSelectedOption] = useState(null);
@@ -49,12 +56,15 @@ export default function ChatAttachment({
     const [dropStyle, setDropStyle] = useState({});
     const [dropDirection, setDropDirection] = useState("down");
     const [openEditar, setOpenEditar] = useState(false);
+    const [openDados, setOpenDados] = useState(false);
     const textareaRefs = useRef({});
     const [inputs, setInputs] = useState({});
     const [emojiStates, setEmojiStates] = useState({});
     const [msgEditar, setMsgEditar] = useState("");
     const [alertMessage, setAlertMessage] = useState('');
     const [showAlert, setShowAlert] = useState(false);
+    const dropdownRef = useRef(null);
+    const dropdownRefHeight = useRef(null);
 
     useEffect(() => {
         if (!isOpenOptions) {
@@ -68,27 +78,31 @@ export default function ChatAttachment({
 
     useEffect(() => {
         if (isOpenOptions) {
-            setIsVisible(true);   // mostra o dropdown no DOM
-            setClosing(false);    // garante que não está fechando
+            setIsVisible(true);
+            setClosing(false);
 
-            // aqui você define dropStyle inicial + transição aberta
             const buttonRect = wrapperRef.current.getBoundingClientRect();
-            const dropdownHeight = 185;
-            const spaceBottom = window.innerHeight - buttonRect.bottom;
+
+            // pega altura real do dropdown após ele ser renderizado
+            const dropdownHeight = dropdownRefHeight.current ? dropdownRefHeight.current.offsetHeight : 185;
+
+            const spaceBottom = window.innerHeight - buttonRect.bottom - 25;
             const spaceTop = buttonRect.top;
 
             let top = buttonRect.bottom - 5;
             let direction = "down";
 
             if (spaceBottom < dropdownHeight && spaceTop > spaceBottom) {
-                top = buttonRect.top - dropdownHeight - 8;
+                top = buttonRect.top - dropdownHeight + 10;
                 direction = "up";
             }
 
             const lado = setDirection === "own" ? "right" : "left";
             const translateY = direction === "down" ? 6 : -6;
 
-            const ladoRight = setDirection === "own" ? window.innerWidth - buttonRect.right + 10 : window.innerWidth - buttonRect.right - 200;
+            const ladoRight = setDirection === "own"
+                ? window.innerWidth - buttonRect.right + 10
+                : window.innerWidth - buttonRect.right - 200;
 
             setDropStyle({
                 position: "absolute",
@@ -115,7 +129,6 @@ export default function ChatAttachment({
             setDropDirection(direction);
 
         } else if (isVisible) {
-            // Ao fechar: aplica animação de fechamento
             setClosing(true);
 
             setDropStyle(prev => ({
@@ -126,7 +139,6 @@ export default function ChatAttachment({
                 transition: "transform 180ms cubic-bezier(.2,.9,.2,1), opacity 150ms ease",
             }));
 
-            // Remove do DOM depois da animação (ex: 180ms)
             const timer = setTimeout(() => {
                 setIsVisible(false);
                 setClosing(false);
@@ -135,8 +147,6 @@ export default function ChatAttachment({
             return () => clearTimeout(timer);
         }
     }, [isOpenOptions, dropDirection, isVisible, setDirection]);
-
-    const dropdownRef = useRef(null);
 
     useEffect(() => {
         if (!isOpenOptions) return;
@@ -165,31 +175,62 @@ export default function ChatAttachment({
         }
     }, [openEditar, dadosMensagem, chatId]);
 
+    useEffect(() => {
+        if (openDados && dadosMensagem?.mensagem) {
+            setInputs(prev => ({ ...prev, [chatId]: dadosMensagem.mensagem }));
+        }
+    }, [openDados, dadosMensagem, chatId]);
+
     const options = [
-        {
-            id: 1,
-            label: "Dados da mensagem",
-            icon: InfoRefreshed,
-            color: "rgba(0, 0, 0, .6)",
-            onClick: () => chamaFuncao("dados"),
-            class: ""
-        },
-        // {
-        //     id: 2,
-        //     label: "Responder",
-        //     icon: ReplyRefreshed,
-        //     color: "rgba(0, 0, 0, .6)",
-        //     onClick: () => chamaFuncao("responder"),
-        //     class: ""
-        // },
-        {
-            id: 3,
-            label: "Copiar",
-            icon: CopyRefreshed,
-            color: "rgba(0, 0, 0, .6)",
-            onClick: () => chamaFuncao("copiar"),
-            class: ""
-        },
+        ...(dadosMensagem.type === "text"
+            ? [
+                dadosMensagem.autor && {
+                    id: 1,
+                    label: "Dados da mensagem",
+                    icon: InfoRefreshed,
+                    color: "rgba(0, 0, 0, .6)",
+                    onClick: () => chamaFuncao("dados"),
+                    class: ""
+                },
+                {
+                    id: 2,
+                    label: "Responder",
+                    icon: ReplyRefreshed,
+                    color: "rgba(0, 0, 0, .6)",
+                    onClick: () => chamaFuncao("responder"),
+                    class: ""
+                },
+                {
+                    id: 3,
+                    label: "Copiar",
+                    icon: CopyRefreshed,
+                    color: "rgba(0, 0, 0, .6)",
+                    onClick: () => chamaFuncao("copiar"),
+                    class: ""
+                },
+                {
+                    id: 6,
+                    label: isFixed ? "Desafixar" : "Fixar",
+                    icon: isFixed ? UnpinRefreshedIcon : PinRefreshedIcon,
+                    color: "rgba(0, 0, 0, .6)",
+                    onClick: () => chamaFuncao(isFixed ? "desafixar" : "fixar"),
+                    class: ""
+                },
+                {
+                    id: 8,
+                    label: "<hr>",
+                },
+                dadosMensagem.autor && {
+                    id: 9,
+                    label: "Editar mensagem",
+                    icon: PencilRefreshed,
+                    color: "rgba(0, 0, 0, .6)",
+                    onClick: () => chamaFuncao("editar"),
+                    class: ""
+                },
+            ].filter(Boolean)
+            : []),
+
         // {
         //     id: 4,
         //     label: "Reagir",
@@ -206,14 +247,7 @@ export default function ChatAttachment({
         //     onClick: () => chamaFuncao("encaminhar"),
         //     class: ""
         // },
-        // {
-        //     id: 6,
-        //     label: "Fixar",
-        //     icon: PinRefreshedIcon,
-        //     color: "rgba(0, 0, 0, .6)",
-        //     onClick: () => chamaFuncao("fixar"),
-        //     class: ""
-        // },
+
         // {
         //     id: 7,
         //     label: "Favoritar",
@@ -222,18 +256,18 @@ export default function ChatAttachment({
         //     onClick: () => chamaFuncao("favoritar"),
         //     class: ""
         // },
-        {
-            id: 8,
-            label: "<hr>",
-        },
-        {
-            id: 9,
-            label: "Editar mensagem",
-            icon: PencilRefreshed,
-            color: "rgba(0, 0, 0, .6)",
-            onClick: () => chamaFuncao("editar"),
-            class: ""
-        },
+        ...(dadosMensagem.type === "image" || dadosMensagem.type === "camera" || dadosMensagem.type === "video" || dadosMensagem.type === "file" ||  dadosMensagem.type === "audio" || dadosMensagem.type === "audioGrava" || dadosMensagem.type === "enquete" || dadosMensagem.type === "evento"
+            ? [
+                {
+                    id: 2,
+                    label: "Responder",
+                    icon: ReplyRefreshed,
+                    color: "rgba(0, 0, 0, .6)",
+                    onClick: () => chamaFuncao("responder"),
+                    class: ""
+                },
+            ].filter(Boolean)
+            : []),
         {
             id: 10,
             label: "Apagar mensagem",
@@ -248,12 +282,34 @@ export default function ChatAttachment({
         setSelectedOption(optionLabel);
 
         switch (optionLabel) {
+            case "dados":
+                setOpenDados(true);
+                setOpenMensagem(true);
+                onToggleOptions(false);
+                break;
+            case "responder":
+                onToggleOptions(false);
+                handleResponderMessage();
+                break;
+            case "copiar":
+                handleCopyMessage(chatId);
+                onToggleOptions(false);
+                break;
+            case "fixar":
+                onToggleOptions(false);
+                handleFixeMessage(1);
+                break;
+            case "desafixar":
+                onToggleOptions(false);
+                handleFixeMessage(2);
+                break;
             case "editar":
                 setOpenEditar(true);
                 setOpenMensagem(true);
                 onToggleOptions(false);
                 break;
             case "apagar":
+                setShowModal(true);
                 onToggleOptions(false);
                 setTituloConfirma(`Deseja apagar a mensagem?`);
                 setMsgConfirma(`As mensagens será removida`);
@@ -263,24 +319,116 @@ export default function ChatAttachment({
 
     const confirmAcaoAll = async () => {
         setShowModal(false);
+
+        const message = {
+            id: msgId,
+            sender_id: dadosMensagem.sender_id,
+            receiver_id: dadosMensagem.receiver_id,
+            type: dadosMensagem.type,
+            content: dadosMensagem.mensagem,
+            metadata: {
+                ...dadosMensagem.metadata,
+                hideTo: [
+                    ...(dadosMensagem.metadata?.hideTo || []),
+                    { userId },
+                    { userId: chatId }
+                ]
+            }
+        };
+
+        apagarMensagem(message);
     };
 
     const confirmAcaoMe = async () => {
         setShowModal(false);
-    };
 
-    // Função que carrega os dados do usuário
-    function carregarDadosMensagem(id) {
-        const fakeMessage = {
-            id,
-            mensagem: dadosMensagem.mensagem,
-            created_at: dadosMensagem.created_at,
-            read_at: dadosMensagem.read_at,
+        const message = {
+            id: msgId,
+            sender_id: dadosMensagem.sender_id,
+            receiver_id: dadosMensagem.receiver_id,
+            type: dadosMensagem.type,
+            content: dadosMensagem.mensagem,
+            metadata: {
+                ...dadosMensagem.metadata,
+                hideTo: [
+                    ...(dadosMensagem.metadata?.hideTo || []),
+                    { userId }
+                ]
+            }
         };
 
-        setMsgData(fakeMessage);
-        onToggleOptions(false);
-    }
+        apagarMensagem(message);
+    };
+
+    const handleResponderMessage = () => {
+        setShowModal(false);
+
+        const message = {
+            id: msgId,
+            sender_id: dadosMensagem.sender_id,
+            receiver_id: dadosMensagem.receiver_id,
+            type: dadosMensagem.type,
+            content: dadosMensagem.mensagem,
+            metadata: dadosMensagem.metadata,
+            chatId: chatId,
+        };
+
+        setResponderMsg(prev => {
+            const index = prev.findIndex(msg => msg.chatId === chatId);
+
+            // não existe resposta para esse chat
+            if (index === -1) {
+                return [...prev, message];
+            }
+
+            // já existe → substitui
+            const updated = [...prev];
+            updated[index] = message;
+            return updated;
+        });
+    };
+
+    const handleCopyMessage = (chatId) => {
+        const message = (inputs[chatId] || dadosMensagem?.mensagem || "").trimEnd();
+        if (!message) return;
+
+        navigator.clipboard.writeText(message)
+            .then(() => {
+                setAlertMessage("Mensagem copiada!");
+                setShowAlert(true);
+            })
+            .catch(err => {
+                console.error("Erro ao copiar: ", err);
+                setAlertMessage("Não foi possível copiar a mensagem.");
+                setShowAlert(true);
+            });
+    };
+
+    const handleFixeMessage = async (tipo) => {
+        setShowModal(false);
+
+        const isAdd = tipo === 1;
+
+        const fixedToAtual = dadosMensagem.metadata?.fixedTo || [];
+
+        const fixedToAtualizado = isAdd
+            ? [...fixedToAtual, { userId }]
+            : fixedToAtual.filter(f => Number(f.userId) !== Number(userId));
+
+        const message = {
+            id: msgId,
+            sender_id: dadosMensagem.sender_id,
+            receiver_id: dadosMensagem.receiver_id,
+            type: dadosMensagem.type,
+            content: dadosMensagem.mensagem,
+            metadata: {
+                ...dadosMensagem.metadata,
+                fixedTo: fixedToAtualizado
+            }
+        };
+
+        fixarMensagem(message);
+    };
 
     const toggleEmoji = (id, open) => {
         setEmojiStates(() => {
@@ -289,35 +437,35 @@ export default function ChatAttachment({
         });
     };
 
-    const handleEmojiSelect = (chatId, emoji, numberOption) => {
-        const inputEl = inputs.current[numberOption];
+    const handleEmojiSelect = (chatId, emoji) => {
+        const inputEl = textareaRefs.current[chatId];
         if (!inputEl) return;
 
         const start = inputEl.selectionStart || 0;
         const end = inputEl.selectionEnd || 0;
 
-        // Valor antes da alteração: podemos pegar do estado ou do input
-        let currentValue = inputEl.value;
+        // valor atual do textarea (via estado controlado)
+        const currentValue = inputs[chatId] || "";
 
-        // Computa novo valor inserindo emoji
+        // novo valor com emoji inserido
         const newValue = currentValue.slice(0, start) + emoji + currentValue.slice(end);
 
-        setMsgEditar(newValue);
+        // atualiza o estado do campo
+        setInputs(prev => ({ ...prev, [chatId]: newValue }));
+        setMsgEditar(newValue); // mantém sincronizado com o que será enviado
 
-        // Reposiciona cursor no input
+        // reposiciona o cursor
         requestAnimationFrame(() => {
-            inputEl.setSelectionRange(start + emoji.length, start + emoji.length);
             inputEl.focus();
+            inputEl.setSelectionRange(start + emoji.length, start + emoji.length);
         });
     };
 
     const handleSendFile = async () => {
+        const inputEl = textareaRefs.current[chatId];
+        const mensagemAtual = msgEditar?.trim() || inputEl?.value?.trim() || "";
 
-        if (!previewModal) return;
-
-        const mensagem = inputs?.value || "";
-
-        if (!mensagem) {
+        if (!mensagemAtual) {
             setAlertMessage("A mensagem não pode estar vazia!");
             setShowAlert(true);
             return;
@@ -325,17 +473,18 @@ export default function ChatAttachment({
 
         const message = {
             id: msgId,
-            type: selectedOption,
-            content: msgEditar,
+            type: "text",
+            content: mensagemAtual,
             metadata: {}
         };
 
-        editarMensagem(false, message);
+        editarMensagem(message);
         closeEdit();
     };
 
     const dropOpt = (
         <div
+            ref={dropdownRefHeight}
             className={`attachment-dropdown ${closing ? "closed" : "open"} ${dropDirection}`}
             onClick={(e) => e.stopPropagation()}
             style={{
@@ -388,7 +537,7 @@ export default function ChatAttachment({
         <ConfirmModalApagarMsg
             show={showModal}
             title={tituloConfirma}
-            all={true}
+            all={dadosMensagem.autor}
             onConfirmAll={confirmAcaoAll}
             onConfirmMe={confirmAcaoMe}
             onCancel={cancelAcao}
@@ -397,27 +546,38 @@ export default function ChatAttachment({
 
     const closeEdit = () => {
         setOpenEditar(false);
+        setOpenDados(false);
         setOpenMensagem(false);
     }
 
     const previewModal = (
         <div className="preview-modal">
             <div className={`preview-content evento`}>
-
                 <div className="container-file-preview enquete">
                     <div style={{
                         marginBottom: 50,
                         marginTop: 20,
                         fontSize: "1.5rem",
                         color: "#aebac1"
-                    }}>Editar mensagem</div>
+                    }}>{selectedOption === "editar" ? 'Editar' : 'Visualizar'} mensagem</div>
                     <div style={{ fontSize: "1rem", color: "rgb(174, 186, 193)", width: "90%", position: "relative", minHeight: "150px", backgroundColor: "#F5F1EB", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", padding: "10px" }}>
-                        <div class="background"></div>
+                        <div className="background"></div>
                         <div className="chat-message-row own message-item" style={{ justifyContent: "center", }}>
-                            <div className="chat-message-bubble ">
+                            <div className="chat-message-bubble" style={{ maxWidth: "100%", }}>
                                 <span>{dadosMensagem.mensagem}</span>
-                                <span className="message-time send false">01:18</span>
-                                <span className="message-status false"></span>
+                                <span className={`message-time send`}>
+                                    {dadosMensagem.created_at}
+                                </span>
+
+                                {dadosMensagem.read_at ? (
+                                    <span className={`message-status lida`}>
+                                        <MsgDoubleCheckIcon size={16} color="#007BFC" />
+                                    </span>
+                                ) : (
+                                    <span className={`message-status`}>
+                                        <MsgDoubleCheckIcon size={16} color={`gray`} />
+                                    </span>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -435,14 +595,18 @@ export default function ChatAttachment({
                             <CloseRoundedIcon size={24} color="#0A0A0A" />
                         </div>
                     </button>
-                    {(selectedOption !== "enquete" && selectedOption !== "evento") && (
+                    {(openEditar && selectedOption === "editar") && (
                         <>
                             <textarea
                                 ref={el => (textareaRefs.current[chatId] = el)}
                                 placeholder="Digite sua mensagem..."
                                 className="chat-message-preview"
                                 value={inputs[chatId] || ""}
-                                onChange={e => setInputs(prev => ({ ...prev, [chatId]: e.target.value }))}
+                                onChange={e => {
+                                    const value = e.target.value;
+                                    setInputs(prev => ({ ...prev, [chatId]: value }));
+                                    setMsgEditar(value); // mantém msgEditar sincronizado com o textarea
+                                }}
                             />
                             <span className="options-footer-emoji-preview">
                                 <EmojiDropdown
@@ -454,14 +618,14 @@ export default function ChatAttachment({
                                     numberOption={0}
                                 />
                             </span>
+                            <span
+                                className="options-footer options-send"
+                                onClick={handleSendFile}
+                            >
+                                <SendFilledIcon size={24} color="#ffffff" />
+                            </span>
                         </>
                     )}
-                    <span
-                        className="options-footer options-send"
-                        onClick={handleSendFile}
-                    >
-                        <SendFilledIcon size={24} color="#ffffff" />
-                    </span>
                 </div>
             </div>
         </div>
@@ -485,7 +649,7 @@ export default function ChatAttachment({
                 aria-expanded={isOpenOptions}
                 className={`opt_msg ${isOpenOptions ? "active" : ""}`}
                 onClick={() => onToggleOptions(!isOpenOptions)}
-                style={{ zIndex: 1 }}
+            style={{ zIndex: 1, color: dadosMensagem.type === "image" ? "#ffffff" : "#333333" }}
             >
                 <IconB />
             </button>
@@ -515,7 +679,7 @@ export default function ChatAttachment({
                 onClose={() => setShowAlert(false)}
             />
 
-            {openEditar && (() => {
+            {(openEditar || openDados) && (() => {
                 const container = document.querySelector(`.chat-window[data-chat-id="chat-${chatId}"] .div-preview`);
                 if (container) return createPortal(previewModal, container);
                 return null;
