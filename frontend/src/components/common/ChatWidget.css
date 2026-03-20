@@ -100,7 +100,7 @@
   background-color: #e3e3e3;
   /* box-shadow: 0 1px 6px #0000001f; */
   width: calc(100% - 125px);
-  padding: 10px 20px 0px 20px;
+  padding: 15px 20px 0px 20px;
   border: none;
   color: rgb(0 0 0/.9);
   border-radius: 10px;
@@ -422,7 +422,7 @@
   margin-bottom: 5px;
   bottom: 8px;
   position: absolute;
-  line-height: 20px;
+  line-height: 18px;
 }
 
 .chat-options {
@@ -744,6 +744,7 @@
 .options-footer-emoji-preview .options-emoji {
   left: inherit;
   right: 20px;
+  bottom: 18px !important;
 }
 
 .options-footer-emoji-preview .emoji-dropdown.open {
@@ -957,7 +958,7 @@
 .archived-panel {
   position: absolute;
   top: 0;
-  right: -320px;
+  right: -321px;
   /* escondido fora da tela */
   width: 300px;
   height: 100%;

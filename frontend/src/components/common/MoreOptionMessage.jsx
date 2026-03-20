@@ -60,7 +60,7 @@ export default function ChatAttachment({
     const textareaRefs = useRef({});
     const [inputs, setInputs] = useState({});
     const [emojiStates, setEmojiStates] = useState({});
-    const [msgEditar, setMsgEditar] = useState("");
+    const [msgEditar, setMsgEditar] = useState(null);
     const [alertMessage, setAlertMessage] = useState('');
     const [showAlert, setShowAlert] = useState(false);
     const dropdownRef = useRef(null);
@@ -445,13 +445,11 @@ export default function ChatAttachment({
         const end = inputEl.selectionEnd || 0;
 
         // valor atual do textarea (via estado controlado)
-        const currentValue = inputs[chatId] || "";
+        const currentValue = msgEditar || "";
 
         // novo valor com emoji inserido
         const newValue = currentValue.slice(0, start) + emoji + currentValue.slice(end);
 
-        // atualiza o estado do campo
-        setInputs(prev => ({ ...prev, [chatId]: newValue }));
         setMsgEditar(newValue); // mantém sincronizado com o que será enviado
 
         // reposiciona o cursor
@@ -548,6 +546,7 @@ export default function ChatAttachment({
         setOpenEditar(false);
         setOpenDados(false);
         setOpenMensagem(false);
+        setMsgEditar(null);
     }
 
     const previewModal = (
@@ -601,11 +600,11 @@ export default function ChatAttachment({
                                 ref={el => (textareaRefs.current[chatId] = el)}
                                 placeholder="Digite sua mensagem..."
                                 className="chat-message-preview"
-                                value={inputs[chatId] || ""}
+                                value={msgEditar ?? inputs[chatId] ?? ""}
                                 onChange={e => {
                                     const value = e.target.value;
                                     setInputs(prev => ({ ...prev, [chatId]: value }));
-                                    setMsgEditar(value); // mantém msgEditar sincronizado com o textarea
+                                    setMsgEditar(value); 
                                 }}
                             />
                             <span className="options-footer-emoji-preview">

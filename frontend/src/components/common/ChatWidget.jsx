@@ -956,7 +956,7 @@ export default function ChatWidget() {
                         maxHeight: `${panelHeight}px`,
                         position: "relative",
                         overflowX: "hidden",
-                        overflow: "visible"
+                        overflowY: "none"
                     }}>
                     {users.some(u => archivedChats[u.id]) && (
                         <div
@@ -1541,7 +1541,7 @@ export default function ChatWidget() {
                                                         // );
                                                     })}
                                                 <textarea
-                                                    style={{ marginTop: 10 }}
+                                                    style={{ marginTop: 15 }}
                                                     ref={el => (textareaRefs.current[c.id] = el)}
                                                     placeholder="Digite sua mensagem..."
                                                     className="chat-message-textarea"

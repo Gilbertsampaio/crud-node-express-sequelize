@@ -11,6 +11,10 @@
   cursor: pointer;
   outline: none;
   overflow: hidden;
+  bottom: 18px;
+}
+
+.chat-attachment .options-footer.options-file {
   bottom: 12px;
 }
 
