@@ -70,6 +70,7 @@ export default function ChatWidget() {
     const moreOptionsRefs = useRef({});
     const [archivedChats, setArchivedChats] = useState({});
     const [fixedChats, setFixedChats] = useState({});
+    const [readChats, setReadChats] = useState({});
     const [blockChats, setBlockChats] = useState({});
     const [showArchived, setShowArchived] = useState(false);
     const [blockChatsMsg, setBlockChatsMsg] = useState({});
@@ -173,6 +174,22 @@ export default function ChatWidget() {
     }, []);
 
     useEffect(() => {
+        async function fetchRead() {
+            try {
+                const res = await api.get(`/chat/fixed`);
+                const mapped = {};
+                res.data.forEach(chat => {
+                    mapped[chat.chat_id] = true;
+                });
+                setReadChats(mapped);
+            } catch (err) {
+                console.error("Erro ao carregar lidos", err);
+            }
+        }
+        fetchRead();
+    }, []);
+
+    useEffect(() => {
         async function fetchBlock() {
             try {
                 const res = await api.get(`/chat/blocked`);
@@ -226,6 +243,26 @@ export default function ChatWidget() {
     };
 
     const handleFixeToggle = async (chatId) => {
+        try {
+            if (fixedChats[chatId]) {
+                // Já arquivado → desarquivar
+                await api.delete(`/chat/${chatId}/unpinChat`);
+                setFixedChats(prev => {
+                    const copy = { ...prev };
+                    delete copy[chatId];
+                    return copy;
+                });
+            } else {
+                // Não está arquivado → arquivar
+                await api.post(`/chat/${chatId}/pinChat`);
+                setFixedChats(prev => ({ ...prev, [chatId]: true }));
+            }
+        } catch (err) {
+            console.error("Erro ao atualizar fixamento", err);
+        }
+    };
+
+    const handleReadToggle = async (chatId) => {
         try {
             if (fixedChats[chatId]) {
                 // Já arquivado → desarquivar
@@ -1047,6 +1084,10 @@ export default function ChatWidget() {
                                                         case "apagar":
                                                             handleCleanChat(u, `user-${u.id}`);
                                                             break;
+                                                        case "naoLida":
+                                                            handleReadToggle(u.id);
+                                                            setOpenMoreOptions(prev => ({ ...prev, [`user-${u.id}`]: false }));
+                                                            break;
                                                     }
                                                 }}
                                                 chatArquivado={{
@@ -1060,6 +1101,9 @@ export default function ChatWidget() {
                                                 }}
                                                 chatLimpo={{
                                                     [`user-${u.id}`]: cleanChats[u.id],
+                                                }}
+                                                chatLida={{
+                                                    [`user-${u.id}`]: readChats[u.id],
                                                 }}
                                                 fecharConversa={false}
                                             />
@@ -1186,6 +1230,10 @@ export default function ChatWidget() {
                                                             case "apagar":
                                                                 handleCleanChat(u, `user-${u.id}`);
                                                                 break;
+                                                            case "naoLida":
+                                                                handleReadToggle(u.id);
+                                                                setOpenMoreOptions(prev => ({ ...prev, [`chat-${u.id}`]: false }));
+                                                                break;
                                                         }
                                                     }}
                                                     chatArquivado={{
@@ -1200,6 +1248,9 @@ export default function ChatWidget() {
                                                     chatLimpo={{
                                                         [`user-${u.id}`]: cleanChats[u.id],
                                                     }}
+                                                    chatLida={{
+                                                    [`user-${u.id}`]: fixedChats[u.id],
+                                                }}
                                                     fecharConversa={false}
                                                 />
                                             </span>
@@ -1277,6 +1328,10 @@ export default function ChatWidget() {
                                                     case "apagar":
                                                         handleCleanChat(c, `user-${c.id}`);
                                                         break;
+                                                    case "naoLida":
+                                                        handleReadToggle(c.id);
+                                                        setOpenMoreOptions(prev => ({ ...prev, [`chat-${c.id}`]: false }));
+                                                        break;
                                                 }
                                             }}
                                             chatArquivado={{
@@ -1290,6 +1345,9 @@ export default function ChatWidget() {
                                             }}
                                             chatLimpo={{
                                                 [`chat-${c.id}`]: cleanChats[c.id],
+                                            }}
+                                            chatLida={{
+                                                [`user-${c.id}`]: fixedChats[c.id],
                                             }}
                                             fecharConversa={true}
                                         />

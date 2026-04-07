@@ -11,6 +11,9 @@ import PinRefreshedIcon from "./icons/PinRefreshedIcon";
 import UnpinRefreshedIcon from "./icons/UnpinRefreshedIcon";
 import MoreRefreshed from "./icons/MoreRefreshed";
 import ArrowDropIcon from "./icons/ArrowDropIcon";
+import ChatUnreadRefreshedIcon from "./icons/ChatUnreadRefreshedIcon";
+import ChatRefreshedIcon  from "./icons/ChatRefreshedIcon";
+
 import { FaTrashRestoreAlt } from "react-icons/fa";
 
 const icons = {
@@ -41,6 +44,7 @@ export default function ChatAttachment({
     chatFixado,
     chatBloqueado,
     chatLimpo,
+    chatLida,
     fecharConversa
 }) {
     const wrapperRef = useRef(null);
@@ -52,6 +56,7 @@ export default function ChatAttachment({
     const [labelBloqueado, setLabelBloqueado] = useState("Bloquear");
     // const [labelLimpo, setLabelLimpo] = useState("Limpar");
     const [labelApagado, setLabelApagado] = useState("Apagar conversas");
+    const [labelLida, setLabelLida] = useState("não lida");
     const [showModal, setShowModal] = useState(false);
     const [tituloConfirma, setTituloConfirma] = useState(null);
     const [msgConfirma, setMsgConfirma] = useState(null);
@@ -171,7 +176,8 @@ export default function ChatAttachment({
         setLabelBloqueado(chatBloqueado[chatId] ? "Desbloquear" : "Bloquear");
         // setLabelLimpo(chatLimpo[chatId] ? "Deslimpar" : "Limpar");
         setLabelApagado(chatLimpo[chatId] ? "Restaurar conversas" : "Apagar conversas");
-    }, [chatArquivado, chatFixado, chatBloqueado, chatLimpo, chatId]);
+        setLabelLida(chatFixado[chatId] ? "lida" : "não lida");
+    }, [chatArquivado, chatFixado, chatBloqueado, chatLimpo, chatLida, chatId]);
 
     useEffect(() => {
         if (resetRef) resetRef.current = resetarDados;
@@ -231,6 +237,14 @@ export default function ChatAttachment({
             icon: ArchiveRefreshedIcon,
             color: "rgba(0, 0, 0, .6)",
             onClick: () => chamaFuncao("arquivar"),
+            class: ""
+        },
+        {
+            id: 4,
+            label: `Marcar como ${labelLida}`,
+            icon: chatFixado[chatId] ? ChatRefreshedIcon : ChatUnreadRefreshedIcon,
+            color: "rgba(0, 0, 0, .6)",
+            onClick: () => chamaFuncao("naoLida"),
             class: ""
         },
         {
@@ -303,6 +317,10 @@ export default function ChatAttachment({
                 onToggleOptions(false);
                 setTituloConfirma(`Deseja ${chatLimpo[chatId] ? "restaurar" : "apagar"} a conversa com ${getFirstName(chatName)}?`);
                 setMsgConfirma(`As mensagens serão ${chatLimpo[chatId] ? "restauradas" : "removidas"}.`);
+                break;
+
+            case "naoLida":
+                if (onOptionSelect) onOptionSelect(optionLabel);
                 break;
 
             default:
